@@ -1,0 +1,20 @@
+{
+  "name": "chore-fire",
+  "version": "0.1.0",
+  "description": "A powerful graphical tool for web developers that quickly submits large amounts of modification requirements in web UI to your AI coding assistant in the form of multimodal messages.",
+  "license": "MIT",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.2",
+    "koa": "^3.0.3",
+    "koa-bodyparser": "^4.4.1",
+    "koa-router": "^14.0.0",
+    "nanoid": "^5.1.6",
+    "zod": "^3.25.76"
+  }
+}
