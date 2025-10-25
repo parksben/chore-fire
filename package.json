@@ -6,14 +6,25 @@
   "author": "",
   "type": "commonjs",
   "main": "index.js",
+  "bin": {
+    "chore-fire-launch": "./bin/launch.js",
+    "chore-fire-stop": "./bin/stop.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "./bin/launch.js",
+    "postuninstall": "./bin/stop.js",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",
+    "@typescript-eslint/typescript-estree": "^8.46.2",
     "koa": "^3.0.3",
     "koa-bodyparser": "^4.4.1",
+    "koa-mount": "^4.2.0",
     "koa-router": "^14.0.0",
+    "koa-static": "^5.0.0",
+    "magic-string": "^0.30.21",
     "nanoid": "^5.1.6",
     "zod": "^3.25.76"
   }

@@ -1,0 +1,63 @@
+#!/usr/bin/env node
+const fs = require('node:fs')
+const path = require('node:path')
+const { exec } = require('node:child_process')
+const { HTTP_SERVER_PORT } = require('../server/runtime.js')
+
+// 1. 移除 chore-fire 服务器配置
+const jsonPath = path.join(process.cwd(), '.vscode/mcp.json')
+
+if (fs.existsSync(jsonPath)) {
+  const existingConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'))
+
+  if (existingConfig.servers?.['chore-fire']) {
+    delete existingConfig.servers['chore-fire']
+
+    if (Object.keys(existingConfig.servers).length > 0) {
+      fs.writeFileSync(jsonPath, JSON.stringify(existingConfig, null, 2), 'utf-8')
+    } else {
+      fs.unlinkSync(jsonPath)
+    }
+  }
+}
+
+// 2. 杀掉 http 服务器进程
+const port = Number(HTTP_SERVER_PORT)
+const platform = process.platform
+
+let command
+if (platform === 'win32') {
+  // Windows 系统
+  command = `netstat -ano | findstr :${port}`
+} else {
+  // Unix/Linux/Mac 系统
+  command = `lsof -i :${port} | grep LISTEN`
+}
+
+exec(command, (err, stdout, stderr) => {
+  if (err || stderr) {
+    console.error(`Error executing command: ${err || stderr}`)
+    return
+  }
+
+  const lines = stdout.trim().split('\n')
+  lines.forEach((line) => {
+    let pid
+    if (platform === 'win32') {
+      const parts = line.trim().split(/\s+/)
+      pid = parts[parts.length - 1]
+    } else {
+      const parts = line.trim().split(/\s+/)
+      pid = parts[1]
+    }
+
+    if (pid) {
+      try {
+        process.kill(pid, 'SIGKILL')
+        console.log(`Killed process with PID: ${pid} on port: ${port}`)
+      } catch (e) {
+        console.error(`Failed to kill process with PID: ${pid}`, e)
+      }
+    }
+  })
+})
