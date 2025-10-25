@@ -56,7 +56,7 @@ function createHttpServer({ repo, http_server_port: port }) {
   })
 
   app.use(bodyParser())
-  app.use(mount('/static', staticDir(path.join(__dirname, '../../ui/dist'))))
+  app.use(mount('/static', staticDir(path.join(__dirname, '../../ui'))))
   app.use(router.routes())
   app.use(router.allowedMethods())
 

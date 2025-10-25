@@ -2,9 +2,9 @@
 const fs = require('node:fs')
 const path = require('node:path')
 const { exec } = require('node:child_process')
-const { HTTP_SERVER_PORT } = require('../server/runtime.js')
+const { HTTP_SERVER_PORT } = require('../cjs/server/runtime')
 
-// 1. 移除 chore-fire 服务器配置
+// 1. Remove chore-fire mcp schema from .vscode/mcp.json
 const jsonPath = path.join(process.cwd(), '.vscode/mcp.json')
 
 if (fs.existsSync(jsonPath)) {
@@ -21,7 +21,7 @@ if (fs.existsSync(jsonPath)) {
   }
 }
 
-// 2. 杀掉 http 服务器进程
+// 2. Kill the process running on the HTTP_SERVER_PORT for stopping the local HTTP server
 const port = Number(HTTP_SERVER_PORT)
 const platform = process.platform
 

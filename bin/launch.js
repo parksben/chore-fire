@@ -2,7 +2,7 @@
 const { nanoid } = require('nanoid')
 const fs = require('node:fs')
 const path = require('node:path')
-const { findAvailablePort } = require('../server/common/utils')
+const { findAvailablePort } = require('../cjs/server/common/utils')
 
 ;(async () => {
   const PROJECT_NAMESPACE = `${path.basename(process.cwd())}_${nanoid(4)}`
@@ -14,7 +14,7 @@ const { findAvailablePort } = require('../server/common/utils')
       [LOCAL_MCP_SERVER_NAME]: {
         command: 'node',
         args: [
-          path.join(__dirname, '../server/index.js'),
+          path.join(__dirname, '../cjs/server/index.js'),
           '--project_namespace',
           PROJECT_NAMESPACE,
           '--http_server_port',

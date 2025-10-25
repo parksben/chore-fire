@@ -38,6 +38,13 @@ const fileContent = `module.exports = {
 			rewrite: (path) => path.replace(/^\\/chore-fire/, ""),
 		},
 	},
+  WEBPACK_PROXY_CONFIG: {
+    '/chore-fire': {
+      target: "http://localhost:${values.http_server_port}",
+      changeOrigin: true,
+      pathRewrite: { '^/chore-fire': '' },
+    },
+  },
 };
 `
 const runtimeInfoPath = path.join(__dirname, 'runtime.js')

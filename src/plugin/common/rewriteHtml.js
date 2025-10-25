@@ -1,6 +1,6 @@
 function rewriteHtml(html) {
   // 注入 ChoreFire 运行时信息
-  const { PROJECT_NAMESPACE } = require('../../server/runtime.js')
+  const { PROJECT_NAMESPACE } = require('../../server/runtime')
   const runtimeScript = `<script>window.CHORE_FIRE_PROJECT_NAMESPACE = ${PROJECT_NAMESPACE};</script>`
 
   // 注入前端 SDK

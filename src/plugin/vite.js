@@ -1,23 +1,18 @@
-const { rewriteHtml } = require('./common/html')
-const { jsxCoordinates } = require('./common/jsx')
+const { rewriteHtml } = require('./common/rewriteHtml')
 
 function viteReactPlugin() {
   return {
-    name: 'chore-fire-vite-react-plugin',
+    name: 'chore-fire-vite-plugin',
     enforce: 'pre',
 
     configResolved(config) {
-      this.isProduction = config.command === 'build'
+      this.isDevServer = config.command === 'serve'
     },
 
-    async transform(code, id) {
-      if (this.isProduction) {
-        return
-      }
-      if (id.endsWith('.html')) {
+    transform(code, id) {
+      if (this.isDevServer && id.endsWith('.html')) {
         return rewriteHtml(code)
       }
-      return await jsxCoordinates(code, id)
     },
   }
 }
@@ -29,7 +24,7 @@ module.exports = viteReactPlugin
 
 // const { defineConfig } = require('vite');
 // const react = require('@vitejs/plugin-react');
-// const viteReactPlugin = require('chore-fire/plugin/vite-react-plugin');
+// const viteReactPlugin = require('chore-fire/plugin/vite');
 
 // module.exports = defineConfig({
 //     plugins: [react(), viteReactPlugin()],
