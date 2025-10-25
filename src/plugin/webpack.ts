@@ -1,9 +1,24 @@
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import { rewriteHtml } from './common/rewriteHtml'
+
+export interface ProxyRequest {
+  setHeader: (name: string, value: string) => void
+  getHeader: (name: string) => string | undefined
+  removeHeader: (name: string) => void
+}
+
+export interface ProxyResponse {
+  headers: { [key: string]: string | string[] | undefined }
+}
 
 export interface WebpackProxyConfig {
   target: string
   changeOrigin?: boolean
   pathRewrite?: { [key: string]: string }
+  on?: {
+    proxyReq?: (proxyReq: ProxyRequest, req: IncomingMessage, res: ServerResponse) => void
+    proxyRes?: (proxyRes: ProxyResponse, req: IncomingMessage, res: ServerResponse) => void
+  }
 }
 
 export interface WebpackCompiler {
@@ -86,6 +101,18 @@ export default class ChoreFireWebpackPlugin {
             target: `http://localhost:${HTTP_SERVER_PORT}`,
             changeOrigin: true,
             pathRewrite: { '^/chore-fire': '' },
+            on: {
+              proxyReq: (proxyReq, req) => {
+                if (req.url?.startsWith('/chore-fire/sse')) {
+                  proxyReq.setHeader('accept-encoding', 'identity')
+                }
+              },
+              proxyRes: (proxyRes, req) => {
+                if (req.url?.startsWith('/chore-fire/sse')) {
+                  delete proxyRes.headers['content-encoding']
+                }
+              },
+            },
           }
         }
       } catch {

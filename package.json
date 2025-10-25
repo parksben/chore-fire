@@ -6,21 +6,6 @@
   "author": "parksben",
   "type": "commonjs",
   "exports": {
-    "./server/common/http": {
-      "require": "./cjs/server/common/http.js",
-      "import": "./esm/server/common/http.js",
-      "types": "./cjs/server/common/http.d.ts"
-    },
-    "./server/common/mcp": {
-      "require": "./cjs/server/common/mcp.js",
-      "import": "./esm/server/common/mcp.js",
-      "types": "./cjs/server/common/mcp.d.ts"
-    },
-    "./server/common/utils": {
-      "require": "./cjs/server/common/utils.js",
-      "import": "./esm/server/common/utils.js",
-      "types": "./cjs/server/common/utils.d.ts"
-    },
     "./plugin/vite": {
       "require": "./cjs/plugin/vite.js",
       "import": "./esm/plugin/vite.js",
@@ -30,11 +15,6 @@
       "require": "./cjs/plugin/webpack.js",
       "import": "./esm/plugin/webpack.js",
       "types": "./cjs/plugin/webpack.d.ts"
-    },
-    "./plugin/common/rewriteHtml": {
-      "require": "./cjs/plugin/common/rewriteHtml.js",
-      "import": "./esm/plugin/common/rewriteHtml.js",
-      "types": "./cjs/plugin/common/rewriteHtml.d.ts"
     }
   },
   "bin": {
