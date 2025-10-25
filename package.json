@@ -3,14 +3,51 @@
   "version": "0.1.0",
   "description": "A powerful graphical tool for web developers that quickly submits large amounts of modification requirements in web UI to your AI coding assistant in the form of multimodal messages.",
   "license": "MIT",
-  "author": "",
+  "author": "parksben",
   "type": "commonjs",
-  "main": "index.js",
+  "exports": {
+    "./server/common/http": {
+      "require": "./cjs/server/common/http.js",
+      "import": "./esm/server/common/http.js",
+      "types": "./cjs/server/common/http.d.ts"
+    },
+    "./server/common/mcp": {
+      "require": "./cjs/server/common/mcp.js",
+      "import": "./esm/server/common/mcp.js",
+      "types": "./cjs/server/common/mcp.d.ts"
+    },
+    "./server/common/utils": {
+      "require": "./cjs/server/common/utils.js",
+      "import": "./esm/server/common/utils.js",
+      "types": "./cjs/server/common/utils.d.ts"
+    },
+    "./plugin/vite": {
+      "require": "./cjs/plugin/vite.js",
+      "import": "./esm/plugin/vite.js",
+      "types": "./cjs/plugin/vite.d.ts"
+    },
+    "./plugin/webpack": {
+      "require": "./cjs/plugin/webpack.js",
+      "import": "./esm/plugin/webpack.js",
+      "types": "./cjs/plugin/webpack.d.ts"
+    },
+    "./plugin/common/rewriteHtml": {
+      "require": "./cjs/plugin/common/rewriteHtml.js",
+      "import": "./esm/plugin/common/rewriteHtml.js",
+      "types": "./cjs/plugin/common/rewriteHtml.d.ts"
+    }
+  },
   "bin": {
     "chore-fire-launch": "./bin/launch.js",
     "chore-fire-stop": "./bin/stop.js"
   },
   "scripts": {
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json && npm run copy:json:cjs",
+    "build:esm": "tsc -p tsconfig.esm.json && npm run copy:json:esm",
+    "copy:json:cjs": "cp src/server/runtime.json cjs/server/runtime.json",
+    "copy:json:esm": "cp src/server/runtime.json esm/server/runtime.json",
+    "clean": "rm -rf cjs esm .vscode",
     "postinstall": "./bin/launch.js",
     "postuninstall": "./bin/stop.js",
     "check": "biome check .",
@@ -25,5 +62,14 @@
     "koa-static": "^5.0.0",
     "nanoid": "^5.1.6",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/koa": "^3.0.1",
+    "@types/koa-bodyparser": "^4.3.13",
+    "@types/koa-mount": "^4.0.5",
+    "@types/koa-router": "^7.4.9",
+    "@types/koa-static": "^4.0.4",
+    "@types/node": "^24.9.1",
+    "typescript": "^5.9.3"
   }
 }

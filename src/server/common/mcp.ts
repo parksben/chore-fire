@@ -1,12 +1,21 @@
-const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js')
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js')
-const { nanoid } = require('nanoid')
-const { z } = require('zod')
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
+import type { Task } from './http'
+
+export interface McpServerParams {
+  repo: Map<string, Task>
+  project_namespace: string
+}
 
 // 创建一个 MCP 服务器，提供以下工具：
 // 1. iii 创建一个任务，返回任务ID
 // 2. iii.poll 轮询任务状态，返回 { status: "pending" | "completed", result: any }
-function createMcpServer({ repo, project_namespace: namespace }) {
+export function createMcpServer({
+  repo,
+  project_namespace: namespace,
+}: McpServerParams): McpServer {
   const server = new McpServer({
     name: `mcp-server-${namespace}`,
     version: '1.0.0',
@@ -47,7 +56,7 @@ function createMcpServer({ repo, project_namespace: namespace }) {
         result: z.any().optional(),
       },
     },
-    async ({ taskId }) => {
+    async ({ taskId }: { taskId: string }) => {
       const task = repo.get(taskId)
       if (!task) {
         throw new Error('task not found')
@@ -61,7 +70,7 @@ function createMcpServer({ repo, project_namespace: namespace }) {
 
       return {
         content: [{ type: 'text', text: `任务状态：${task.status}` }],
-        structuredContent: task,
+        structuredContent: { ...task },
       }
     },
   )
@@ -71,6 +80,3 @@ function createMcpServer({ repo, project_namespace: namespace }) {
 
   return server
 }
-
-exports.createMcpServer = createMcpServer
-module.exports = { createMcpServer }

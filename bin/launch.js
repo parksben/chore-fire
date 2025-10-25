@@ -14,7 +14,7 @@ const { findAvailablePort } = require('../cjs/server/common/utils')
       [LOCAL_MCP_SERVER_NAME]: {
         command: 'node',
         args: [
-          path.join(__dirname, '../cjs/server/index.js'),
+          path.join(__dirname, '../cjs/server/start.js'),
           '--project_namespace',
           PROJECT_NAMESPACE,
           '--http_server_port',

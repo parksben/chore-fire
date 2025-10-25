@@ -1,6 +1,6 @@
-const net = require('node:net')
+import * as net from 'node:net'
 
-async function findAvailablePort(startPort, maxAttempts = 200) {
+export async function findAvailablePort(startPort: number, maxAttempts = 200): Promise<number> {
   let port = startPort
 
   for (let i = 0; i < maxAttempts; i++) {
@@ -13,11 +13,11 @@ async function findAvailablePort(startPort, maxAttempts = 200) {
   throw new Error(`Unable to find available port after ${maxAttempts} attempts`)
 }
 
-function isPortAvailable(port) {
+export function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer()
 
-    server.listen(port, (err) => {
+    server.listen(port, (err?: Error) => {
       if (err) {
         resolve(false)
       } else {
@@ -32,11 +32,4 @@ function isPortAvailable(port) {
       resolve(false)
     })
   })
-}
-
-exports.findAvailablePort = findAvailablePort
-exports.isPortAvailable = isPortAvailable
-module.exports = {
-  findAvailablePort,
-  isPortAvailable,
 }
