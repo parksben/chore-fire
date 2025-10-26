@@ -14,9 +14,10 @@ export default defineConfig({
 
         try {
           copyFileSync('dist/index.umd.js', 'cjs/ui/ui.umd.js')
-          copyFileSync('dist/index.umd.js.map', 'cjs/ui/ui.umd.js.map')
           copyFileSync('dist/index.umd.js', 'esm/ui/ui.umd.js')
-          copyFileSync('dist/index.umd.js.map', 'esm/ui/ui.umd.js.map')
+          copyFileSync('dist/style.css', 'cjs/ui/ui.css')
+          copyFileSync('dist/style.css', 'esm/ui/ui.css')
+
           rmSync('dist', { recursive: true, force: true })
           console.log('✅ UMD files copied to cjs/ui and esm/ui')
         } catch (error) {
@@ -25,6 +26,10 @@ export default defineConfig({
       },
     },
   ],
+  // 配置 PostCSS 处理
+  css: {
+    postcss: './postcss.config.js',
+  },
   root: './src/ui',
   build: {
     outDir: '../../dist',
