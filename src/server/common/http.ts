@@ -138,7 +138,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
     const handler = (data: Partial<Task>) => {
       const message = `id: ${data.id}\ndata: ${JSON.stringify({ event: type, data })}\n\n`
       messageCache.push(message)
-      while (messageCache.length > 500) {
+      while (messageCache.length > 200) {
         messageCache.shift()
       }
     }

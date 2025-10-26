@@ -1,6 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseArgs } from 'node:util'
+import { nanoid } from 'nanoid'
 import { createHttpServer } from './common/http'
 import { createMcpServer } from './common/mcp'
 import { TaskStore } from './common/store'
@@ -12,6 +13,7 @@ interface ServerConfig {
 }
 
 interface RuntimeConfig {
+  PROJECT_DIRECTORY: string
   PROJECT_NAMESPACE: string
   HTTP_SERVER_PORT: string
   LOCAL_MCP_SERVER_NAME: string
@@ -22,7 +24,7 @@ const { values } = parseArgs({
     project_namespace: {
       type: 'string',
       short: 'n',
-      default: 'chore-fire',
+      default: `chore-fire_${nanoid(4)}`,
     },
     http_server_port: { type: 'string', short: 'p', default: '12306' },
     local_mcp_server_name: {
@@ -40,6 +42,7 @@ createMcpServer(params)
 createHttpServer(params)
 
 const runtimeConfig: RuntimeConfig = {
+  PROJECT_DIRECTORY: process.cwd(),
   PROJECT_NAMESPACE: values.project_namespace,
   HTTP_SERVER_PORT: values.http_server_port,
   LOCAL_MCP_SERVER_NAME: values.local_mcp_server_name,
