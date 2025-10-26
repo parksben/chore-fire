@@ -31,12 +31,22 @@
   },
   "overrides": [
     {
-      "includes": ["ui/dist/**"],
+      "includes": ["dist/**", "cjs/ui/**", "esm/ui/**"],
       "linter": {
         "enabled": false
       },
       "formatter": {
         "enabled": false
+      }
+    },
+    {
+      "includes": ["src/ui/**/*.tsx", "src/ui/**/*.jsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          }
+        }
       }
     }
   ],
