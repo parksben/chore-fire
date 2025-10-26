@@ -1,5 +1,5 @@
 const RUNTIME_INFO_URL = '/chore-fire/const.js'
-const FE_SDK_URL = '/chore-fire/static/js/comment-layer.js'
+const FE_SDK_URL = '/chore-fire/static/js/ui.umd.js'
 
 export function rewriteHtml(html: string): string {
   const constScript = html.includes(RUNTIME_INFO_URL)
