@@ -1,8 +1,9 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseArgs } from 'node:util'
-import { createHttpServer, type Task } from './common/http'
+import { createHttpServer } from './common/http'
 import { createMcpServer } from './common/mcp'
+import { TaskStore } from './common/store'
 
 interface ServerConfig {
   project_namespace: string
@@ -15,8 +16,6 @@ interface RuntimeConfig {
   HTTP_SERVER_PORT: string
   LOCAL_MCP_SERVER_NAME: string
 }
-
-const repo = new Map<string, Task>() // taskId -> { status, result }
 
 const { values } = parseArgs({
   options: {
@@ -34,7 +33,8 @@ const { values } = parseArgs({
   },
 }) as { values: ServerConfig }
 
-const params = { repo, ...values }
+const store = new TaskStore()
+const params = { store, ...values }
 
 createMcpServer(params)
 createHttpServer(params)

@@ -1,3 +1,5 @@
+import { nanoid } from 'nanoid'
+
 export enum TaskStatus {
   TODO = 'todo',
   DOING = 'doing',
@@ -12,7 +14,7 @@ export interface Task {
   element_tag: string
   element_html: string
   element_screenshot_base64: string
-  prompt: string
+  user_prompt: string
   status: TaskStatus
 }
 
@@ -27,7 +29,7 @@ export const getTaskProperties = (data: Partial<Task>): Partial<Task> => ({
   element_tag: data?.element_tag,
   element_html: data?.element_html,
   element_screenshot_base64: data?.element_screenshot_base64,
-  prompt: data?.prompt,
+  user_prompt: data?.user_prompt,
   status: data?.status,
 })
 
@@ -69,17 +71,32 @@ export class TaskStore {
     return entry ? entry.record : null
   }
 
-  change({ id, status }: { id: string; status: TaskStatus }) {
+  update({ id, ...rest }: Partial<Task> & { id: string }) {
+    const task = this.map.get(id)
+    if (task) {
+      task.record = { ...task.record, ...rest }
+      this.queue[task.index] = task.record
+      this.emit('update', task.record)
+    }
+  }
+
+  status({ id, status }: { id: string; status: TaskStatus }) {
     const task = this.map.get(id)
     if (task) {
       task.record = { ...task.record, status }
       this.queue[task.index] = task.record
-      this.emit('change', task.record)
+      this.emit('status', task.record)
     }
   }
 
   list(): Task[] {
     return Array.from(this.map.values()).map((entry) => entry.record)
+  }
+
+  clear() {
+    this.queue = []
+    this.map.clear()
+    this.emit('clear', { id: `CLEAR-STORE_${nanoid()}` })
   }
 
   on(actionType: string, callback: EventHandler) {

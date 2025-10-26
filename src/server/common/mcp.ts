@@ -1,19 +1,15 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { nanoid } from 'nanoid'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio'
 import { z } from 'zod'
-import type { Task } from './http'
+import type { TaskStatus, TaskStore } from './store'
 
 export interface McpServerParams {
-  repo: Map<string, Task>
+  store: TaskStore
   project_namespace: string
 }
 
-// 创建一个 MCP 服务器，提供以下工具：
-// 1. iii 创建一个任务，返回任务ID
-// 2. iii.poll 轮询任务状态，返回 { status: "pending" | "completed", result: any }
 export function createMcpServer({
-  repo,
+  store,
   project_namespace: namespace,
 }: McpServerParams): McpServer {
   const server = new McpServer({
@@ -21,56 +17,78 @@ export function createMcpServer({
     version: '1.0.0',
   })
 
-  // 注册 iii 工具
   server.registerTool(
-    'iii',
+    'fire',
     {
-      title: 'Interactive Inspector Interface',
-      description: '开始等待用户操作。此工具会创建一个任务ID，用于后续轮询',
+      title: '获取任务列表',
+      description:
+        '获取用户标注的所有待执行任务，编码助手根据此列表逐个执行 coding 任务。执行时注意先分析任务间的相互关系，对于不合理或者有冲突的任务，需进一步询问用户意图，分析后再决定是否执行。多个任务的执行顺序也需合理安排，以确保代码修改的连贯性和正确性。',
       inputSchema: {},
-      outputSchema: { taskId: z.string() },
+      outputSchema: {
+        tasks: z.array(
+          z.object({
+            id: z.string(),
+            page_url: z.string(),
+            element_selector: z.string(),
+            element_tag: z.string(),
+            element_html: z.string(),
+            element_screenshot_base64: z.string(),
+            user_prompt: z.string(),
+            status: z.enum(['todo', 'doing', 'done', 'cancel']),
+          }),
+        ),
+      },
     },
     async () => {
-      const taskId = `${namespace}_${nanoid()}`
-      repo.set(taskId, { status: 'pending', result: null })
-
+      const tasks = store.list()
       return {
-        content: [{ type: 'text', text: `任务已创建：${taskId}` }],
-        structuredContent: { taskId },
+        content: [{ type: 'text', text: `共有 ${tasks.length} 个任务待执行` }],
+        structuredContent: { tasks },
       }
     },
   )
 
-  // 注册 iii.poll 工具
   server.registerTool(
-    'iii.poll',
+    'change_status',
     {
-      title: 'Poll Interactive Task',
+      title: '更新单个任务的状态',
       description:
-        '轮询用户操作结果。当 status 为 "pending" 时，表示用户尚未完成输入；当 status 为 "completed" 时，表示用户已完成输入，此时应停止轮询；用户输入的信息在 result 字段中。',
+        '编码助手根据任务执行情况，实时更新任务的状态。已经决策不执行的任务，请及时更新状态为 cancel。',
       inputSchema: {
-        taskId: z.string().describe('任务ID'),
+        id: z.string().describe('任务ID'),
+        status: z.enum(['todo', 'doing', 'done', 'cancel']).describe('新的任务状态'),
       },
       outputSchema: {
-        status: z.enum(['pending', 'completed']),
-        result: z.any().optional(),
+        success: z.boolean(),
+        message: z.string(),
       },
     },
-    async ({ taskId }: { taskId: string }) => {
-      const task = repo.get(taskId)
-      if (!task) {
-        throw new Error('task not found')
-      }
-
-      if (task.status === 'completed') {
-        setTimeout(() => {
-          repo.delete(taskId)
-        }, 300)
-      }
-
+    async ({ id, status }: { id: string; status: 'todo' | 'doing' | 'done' | 'cancel' }) => {
+      store.status({ id, status: status as TaskStatus })
       return {
-        content: [{ type: 'text', text: `任务状态：${task.status}` }],
-        structuredContent: { ...task },
+        content: [{ type: 'text', text: `任务 ${id} 状态已更新为：${status}` }],
+        structuredContent: { success: true, message: '任务状态已更新' },
+      }
+    },
+  )
+
+  server.registerTool(
+    'clear_store',
+    {
+      title: '清空所有任务',
+      description:
+        '所有任务执行结束（状态走到 done 或 cancel）后，及时清空存储中的任务以释放空间。',
+      inputSchema: {},
+      outputSchema: {
+        success: z.boolean(),
+        message: z.string(),
+      },
+    },
+    async () => {
+      store.clear()
+      return {
+        content: [{ type: 'text', text: '任务列表已清空' }],
+        structuredContent: { success: true, message: '任务列表已清空' },
       }
     },
   )
