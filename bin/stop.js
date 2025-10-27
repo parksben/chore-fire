@@ -27,10 +27,10 @@ const platform = process.platform
 
 let command
 if (platform === 'win32') {
-  // Windows 系统
+  // Windows
   command = `netstat -ano | findstr :${port}`
 } else {
-  // Unix/Linux/Mac 系统
+  // Unix/Linux/Mac
   command = `lsof -i :${port} | grep LISTEN`
 }
 
