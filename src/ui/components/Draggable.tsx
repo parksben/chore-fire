@@ -7,7 +7,10 @@ export interface DraggableProps {
   children?: ReactNode
   safePaddingX?: number
   safePaddingY?: number
+  ignoreElement?: (element: HTMLElement) => boolean
 }
+
+const clickableTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT', 'LABEL']
 
 export default function Draggable({
   className,
@@ -15,12 +18,13 @@ export default function Draggable({
   children,
   safePaddingX = 8,
   safePaddingY = 8,
+  ignoreElement,
 }: DraggableProps) {
   const containerRef = useRef<HTMLSpanElement | null>(null)
-  const handlerRef = useRef<HTMLSpanElement | null>(null)
 
   useEffect(() => {
     const dragInfo = {
+      defaultCursor: '',
       isDragging: false,
       startX: 0,
       startY: 0,
@@ -32,10 +36,19 @@ export default function Draggable({
     const handleMouseDown = (event: MouseEvent) => {
       if (
         containerRef.current instanceof HTMLSpanElement === false ||
-        handlerRef.current instanceof HTMLSpanElement === false ||
-        !handlerRef.current.contains(event.target as Node)
+        !containerRef.current.contains(event.target as Node)
       )
         return
+
+      const targetElement = event.target as HTMLElement
+
+      if (typeof ignoreElement === 'function') {
+        // ignore custom elements
+        if (ignoreElement(targetElement)) return
+      } else {
+        // ignore clickable elements
+        if (clickableTags.includes(targetElement.tagName)) return
+      }
 
       event.preventDefault()
 
@@ -46,14 +59,13 @@ export default function Draggable({
       if (!dragInfo.rect) {
         dragInfo.rect = containerRef.current.getBoundingClientRect()
       }
+
+      dragInfo.defaultCursor = document.body.style.cursor
+      document.body.style.cursor = 'move'
     }
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (
-        containerRef.current instanceof HTMLSpanElement === false ||
-        handlerRef.current instanceof HTMLSpanElement === false
-      )
-        return
+      if (containerRef.current instanceof HTMLSpanElement === false) return
 
       if (!dragInfo.isDragging) return
 
@@ -82,6 +94,7 @@ export default function Draggable({
 
     const handleMouseUp = () => {
       dragInfo.isDragging = false
+      document.body.style.cursor = dragInfo.defaultCursor
     }
 
     document.addEventListener('mousedown', handleMouseDown)
@@ -93,58 +106,11 @@ export default function Draggable({
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [safePaddingX, safePaddingY])
+  }, [safePaddingX, safePaddingY, ignoreElement])
 
   return (
-    <span
-      className={clsx('chore-fire-float-container', className)}
-      style={style}
-      ref={containerRef}
-    >
-      <span
-        style={{
-          position: 'relative',
-          display: 'block',
-          width: '100%',
-          height: '100%',
-        }}
-      >
-        <span
-          className="draggable-handler"
-          style={{
-            lineHeight: 0,
-            padding: '5px 3px',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            cursor: 'move',
-            zIndex: 9999,
-          }}
-          ref={handlerRef}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            xmlSpace="preserve"
-            fill="currentColor"
-            version="1.1"
-            viewBox="0 0 32 32"
-            width="12px"
-            height="12px"
-            style={{
-              color: '#666',
-              filter: 'contrast(2) brightness(0.8)',
-              mixBlendMode: 'difference',
-            }}
-          >
-            <title>draggable</title>
-            <g>
-              <path d="M10 6h4v4h-4zM18 6h4v4h-4zM10 14h4v4h-4zM18 14h4v4h-4zM10 22h4v4h-4zM18 22h4v4h-4z" />
-              <path fill="none" d="M0 0h32v32H0z" />
-            </g>
-          </svg>
-        </span>
-        {children}
-      </span>
+    <span className={clsx('chore-fire-draggable', className)} style={style} ref={containerRef}>
+      {children}
     </span>
   )
 }

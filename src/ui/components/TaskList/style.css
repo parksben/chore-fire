@@ -1,0 +1,747 @@
+.cf-task-draggable {
+  font-size: 16px;
+  position: fixed;
+  z-index: 999999;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 10px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  width: 24em;
+  backdrop-filter: blur(20px);
+}
+
+.cf-task-list {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3em;
+}
+
+.cf-empty-icon {
+  font-size: 4em;
+  line-height: 1;
+  margin-bottom: 0.25em;
+  animation: cf-float 3s ease-in-out infinite;
+}
+
+@keyframes cf-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.cf-empty-title {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 0.5em;
+}
+
+.cf-empty-description {
+  font-size: 1em;
+  color: #9ca3af;
+  margin-bottom: 2em !important;
+  text-align: center;
+  max-width: 300px;
+}
+
+.cf-start-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 1em 2em;
+  font-size: 1.125em;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 12px 32px rgba(102, 126, 234, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.cf-start-button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+}
+
+.cf-start-button:hover::before {
+  left: 100%;
+}
+
+.cf-start-button:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 40px rgba(102, 126, 234, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.cf-start-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.cf-task-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25em 1.25em 1em;
+  background: linear-gradient(180deg, rgba(55, 65, 81, 0.3) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.cf-task-header-title {
+  font-size: 1em;
+  font-weight: 600;
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.cf-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6em;
+  height: 1.6em;
+  padding: 0;
+  background: rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #aaa;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.cf-toggle-button:hover {
+  color: #fff;
+  background: rgba(102, 126, 234, 0.35);
+  border-color: rgba(102, 126, 234, 0.5);
+  box-shadow:
+    0 0 12px rgba(102, 126, 234, 0.4),
+    inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.cf-toggle-button:active {
+  transform: scale(0.95);
+}
+
+.cf-task-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.5em;
+  font-size: 0.875em;
+  font-weight: 700;
+  color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(102, 126, 234, 0.15) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 9999px;
+  box-shadow:
+    0 2px 8px rgba(102, 126, 234, 0.15),
+    inset 0 1px 0 rgba(102, 126, 234, 0.2);
+}
+
+.cf-add-task-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375em;
+  padding: 0.375em 1em;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 12px rgba(102, 126, 234, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.cf-add-task-button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.5s ease;
+}
+
+.cf-add-task-button:hover::before {
+  left: 100%;
+}
+
+.cf-add-task-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 20px rgba(102, 126, 234, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.cf-add-task-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.cf-add-task-button:disabled {
+  background: rgba(102, 126, 234, 0.3);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cf-running-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.375em 1em;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 2px 8px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(16, 185, 129, 0.1);
+}
+
+.cf-spinner {
+  animation: cf-spin 1s linear infinite;
+}
+
+@keyframes cf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cf-task-scroll-container {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.cf-task-scroll-container::-webkit-scrollbar {
+  width: 6px;
+  background-color: transparent;
+}
+
+.cf-task-scroll-container::-webkit-scrollbar-track {
+  background: rgba(17, 24, 39, 0.3);
+  border-radius: 3px;
+  margin: 0.25em 0;
+}
+
+.cf-task-scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.cf-task-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 100%);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.cf-task-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 1.25em;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.2) 0%, transparent 50%);
+}
+
+.cf-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 1em;
+  background: linear-gradient(145deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%);
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  text-align: left;
+}
+
+.cf-task-card:hover {
+  border-color: rgba(102, 126, 234, 0.6);
+  box-shadow:
+    0 12px 28px rgba(102, 126, 234, 0.25),
+    0 8px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transform: translateY(-3px) scale(1.01);
+  background: linear-gradient(145deg, rgba(31, 41, 55, 1) 0%, rgba(17, 24, 39, 0.95) 100%);
+}
+
+.cf-task-card:hover::before {
+  opacity: 1;
+}
+
+.cf-task-card:active {
+  transform: translateY(0);
+}
+
+.cf-task-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.cf-task-number {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1em;
+  font-weight: 700;
+  color: #667eea;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.cf-task-card:hover .cf-task-number {
+  color: #8b9aee;
+}
+
+.cf-task-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.625em;
+  font-size: 0.75em;
+  font-weight: 600;
+  font-family: "Courier New", monospace;
+  color: #60a5fa;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(96, 165, 250, 0.08) 100%);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 2px 8px rgba(96, 165, 250, 0.1),
+    inset 0 1px 0 rgba(96, 165, 250, 0.1);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cf-delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+  font-size: 1em;
+  color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px rgba(239, 68, 68, 0.15),
+    inset 0 1px 0 rgba(239, 68, 68, 0.05);
+  flex-shrink: 0;
+}
+
+.cf-delete-button:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.18) 100%);
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow:
+    0 4px 16px rgba(239, 68, 68, 0.35),
+    inset 0 1px 0 rgba(239, 68, 68, 0.1);
+  transform: scale(1.05);
+}
+
+.cf-task-selector {
+  font-size: 0.75em;
+  font-family: "Courier New", monospace;
+  color: #9ca3af;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.7) 0%, rgba(17, 24, 39, 0.5) 100%);
+  padding: 0.4em 0.6em;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-task-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  width: 100%;
+}
+
+.cf-task-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.875em;
+  font-size: 1em;
+  font-family: inherit;
+  color: #e5e7eb;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(17, 24, 39, 0.7) 100%);
+  border: 1.5px solid rgba(102, 126, 234, 0.35);
+  border-radius: 0.625rem;
+  resize: vertical;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(102, 126, 234, 0.1);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.cf-task-textarea:focus {
+  outline: none;
+  border-color: rgba(102, 126, 234, 0.7);
+  box-shadow:
+    0 0 0 3px rgba(102, 126, 234, 0.15),
+    inset 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.8) 100%);
+}
+
+.cf-task-textarea::placeholder {
+  color: #6b7280;
+}
+
+.cf-task-edit-actions {
+  display: flex;
+  gap: 0.5em;
+  justify-content: flex-end;
+}
+
+.cf-save-button,
+.cf-cancel-button {
+  padding: 0.5em 0.8em;
+  font-size: 0.8em;
+  font-weight: 600;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cf-save-button {
+  color: #ffffff;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow:
+    0 4px 12px rgba(16, 185, 129, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cf-save-button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transform: rotate(45deg);
+  transition: all 0.5s ease;
+}
+
+.cf-save-button:hover::before {
+  left: 100%;
+}
+
+.cf-save-button:disabled {
+  background: rgba(16, 185, 129, 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cf-save-button:hover {
+  box-shadow:
+    0 6px 16px rgba(16, 185, 129, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.cf-cancel-button {
+  color: #e5e7eb;
+  background: linear-gradient(135deg, rgba(75, 85, 99, 0.6) 0%, rgba(75, 85, 99, 0.4) 100%);
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cf-cancel-button:hover {
+  background: linear-gradient(135deg, rgba(75, 85, 99, 0.8) 0%, rgba(75, 85, 99, 0.6) 100%);
+  border-color: rgba(75, 85, 99, 0.7);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.cf-task-prompt {
+  font-size: 1em;
+  color: #d1d5db;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.5) 0%, rgba(17, 24, 39, 0.3) 100%);
+  padding: 0.875em;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(55, 65, 81, 0.3);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: text;
+  width: 100%;
+  text-align: left;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  min-height: 2.5em;
+  display: flex;
+  align-items: flex-start;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.cf-task-prompt:hover {
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.7) 0%, rgba(17, 24, 39, 0.5) 100%);
+  border-color: rgba(102, 126, 234, 0.4);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.cf-task-prompt:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.cf-task-prompt:disabled:hover {
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.5) 0%, rgba(17, 24, 39, 0.3) 100%);
+  border-color: rgba(55, 65, 81, 0.3);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.cf-prompt-placeholder {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.cf-selecting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  padding: 1em;
+  pointer-events: none;
+}
+
+.cf-selecting-tip {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 1em 1.5em;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0.875rem;
+  box-shadow:
+    0 12px 32px rgba(102, 126, 234, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: cf-slide-down 0.3s ease;
+  pointer-events: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes cf-slide-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cf-tip-icon {
+  color: #ffffff;
+}
+
+.cf-tip-text {
+  font-size: 1em;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.cf-cancel-selecting-button {
+  padding: 0.5em 1em;
+  font-size: 0.875em;
+  font-weight: 600;
+  color: #667eea;
+  background: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.cf-cancel-selecting-button:hover {
+  background: #f3f4f6;
+  box-shadow:
+    0 4px 12px rgba(255, 255, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+body.cf-selecting-mode {
+  cursor: crosshair !important;
+}
+
+body.cf-selecting-mode * {
+  cursor: crosshair !important;
+}
+
+.cf-element-hover {
+  outline: 3px solid #667eea !important;
+  outline-offset: 2px;
+  background: rgba(102, 126, 234, 0.1) !important;
+  position: relative;
+  z-index: 9998 !important;
+  animation: cf-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cf-pulse {
+  0%,
+  100% {
+    outline-color: #667eea;
+  }
+  50% {
+    outline-color: #764ba2;
+  }
+}
+
+.cf-task-highlight {
+  animation: cf-highlight-fade 1.5s ease-in-out !important;
+  position: relative !important;
+  z-index: 9997 !important;
+}
+
+@keyframes cf-highlight-fade {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    background-color: rgba(102, 126, 234, 0.3);
+  }
+  10% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0.5);
+    background-color: rgba(102, 126, 234, 0.2);
+  }
+  20% {
+    box-shadow: 0 0 0 20px rgba(102, 126, 234, 0.3);
+    background-color: rgba(102, 126, 234, 0.1);
+  }
+  30% {
+    box-shadow: 0 0 0 30px rgba(102, 126, 234, 0.1);
+    background-color: rgba(102, 126, 234, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 0 40px rgba(102, 126, 234, 0);
+    background-color: transparent;
+  }
+  60% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.5);
+    background-color: rgba(102, 126, 234, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0.3);
+    background-color: rgba(102, 126, 234, 0.1);
+  }
+  80% {
+    box-shadow: 0 0 0 20px rgba(102, 126, 234, 0.1);
+    background-color: rgba(102, 126, 234, 0.05);
+  }
+  90% {
+    box-shadow: 0 0 0 30px rgba(102, 126, 234, 0);
+    background-color: transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 40px rgba(102, 126, 234, 0);
+    background-color: transparent;
+  }
+}
+
+@media (max-width: 640px) {
+  .cf-task-header {
+    flex-direction: column;
+    gap: 0.75em;
+    align-items: stretch;
+  }
+
+  .cf-add-task-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cf-selecting-tip {
+    flex-direction: column;
+    text-align: center;
+  }
+}
