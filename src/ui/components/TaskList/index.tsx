@@ -1,9 +1,20 @@
-import { ChevronDown, ChevronUp, Loader2, MousePointer2, X } from 'lucide-react'
+/** biome-ignore-all lint/a11y/noStaticElementInteractions: make div clickable */
+/** biome-ignore-all lint/a11y/useKeyWithClickEvents: make div clickable */
+import {
+  ChevronsDown,
+  ChevronsUp,
+  Loader2,
+  LocateFixed,
+  MousePointer2,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { type FC, useCallback, useEffect, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
 import Draggable from '../Draggable'
-import './style.css'
+import './style.scss'
+import clsx from 'clsx'
 import { getElementSelector, highlightElement } from './utils'
 
 interface TaskListProps {
@@ -24,10 +35,18 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     (e: MouseEvent) => {
       if (!isSelecting) return
 
-      const element = e.target as HTMLElement
+      let element = e.target as HTMLElement
 
       // ignore TaskList component and selecting overlay
       if (element.closest('.cf-task-list') || element.closest('.cf-selecting-overlay')) return
+
+      // if hovered element is inside SVG, get the SVG element
+      if (element instanceof SVGElement && !(element instanceof SVGSVGElement)) {
+        const svgRoot = element.closest('svg')
+        if (svgRoot) {
+          element = svgRoot as unknown as HTMLElement
+        }
+      }
 
       if (hoveredElement !== element) {
         hoveredElement?.classList.remove('cf-element-hover')
@@ -43,13 +62,21 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     (e: MouseEvent) => {
       if (!isSelecting) return
 
-      const element = e.target as HTMLElement
+      let element = e.target as HTMLElement
 
       // ignore TaskList component and selecting overlay
       if (element.closest('.cf-task-list') || element.closest('.cf-selecting-overlay')) return
 
       e.preventDefault()
       e.stopPropagation()
+
+      // if clicked element is inside SVG, get the SVG element
+      if (element instanceof SVGElement && !(element instanceof SVGSVGElement)) {
+        const svgRoot = element.closest('svg')
+        if (svgRoot) {
+          element = svgRoot as unknown as HTMLElement
+        }
+      }
 
       // get element selector
       const selector = getElementSelector(element)
@@ -189,48 +216,104 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
 
   return (
     <>
-      <Draggable className="cf-task-draggable">
+      <Draggable
+        className={clsx('cf-task-draggable', isCollapsed && 'cf-task-draggable-collapsed')}
+        ignoreElement={(element) =>
+          element.closest('.cf-task-card') instanceof Element ||
+          element.closest('button') instanceof Element
+        }
+        style={{
+          position: 'fixed',
+          zIndex: 10000,
+          right: '8px',
+          bottom: '8px',
+        }}
+      >
         <div className="cf-task-list">
           {data.length === 0 ? (
-            <div className="cf-empty-state">
-              <div className="cf-empty-icon">🎯</div>
-              <h3 className="cf-empty-title">Chore Fire Tasks</h3>
-              <p className="cf-empty-description">Click the button to create your first task</p>
-              <button type="button" className="cf-start-button" onClick={startSelecting}>
-                <span className="cf-button-icon">✨</span>
-                <span>Create Task</span>
-              </button>
+            <div className="cf-task-container cf-task-container-empty">
+              {isCollapsed ? (
+                <div className="cf-task-header">
+                  <div className="cf-drag-handle">
+                    <div className="cf-drag-indicator"></div>
+                  </div>
+                  <div className="cf-task-header-content">
+                    <h3 className="cf-task-header-title">
+                      <button
+                        type="button"
+                        className="cf-toggle-button"
+                        onClick={() => setIsCollapsed((prev) => !prev)}
+                        title="Expand"
+                      >
+                        <ChevronsUp size="1.4em" />
+                      </button>
+                      ChoreFire
+                    </h3>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="cf-empty-drag-handle">
+                    <div className="cf-drag-indicator"></div>
+                  </div>
+                  <div className="cf-empty-header">
+                    <button
+                      type="button"
+                      className="cf-toggle-button"
+                      onClick={() => setIsCollapsed((prev) => !prev)}
+                      title="Collapse"
+                    >
+                      <ChevronsDown size="1.4em" />
+                    </button>
+                  </div>
+                  <div className="cf-empty-content">
+                    <div className="cf-empty-icon">🔥</div>
+                    <h3 className="cf-empty-title">ChoreFire</h3>
+                    <p className="cf-empty-description">Click to start your jobs</p>
+                    <button type="button" className="cf-start-button" onClick={startSelecting}>
+                      <MousePointer2 size="1.2em" />
+                      <span>Inspect</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="cf-task-container">
               <div className="cf-task-header">
-                <h3 className="cf-task-header-title">
-                  <button
-                    type="button"
-                    className="cf-toggle-button"
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    title={isCollapsed ? 'Expand List' : 'Collapse List'}
-                  >
-                    {isCollapsed ? <ChevronUp size="1.2em" /> : <ChevronDown size="1.2em" />}
-                  </button>
-                  Tasks <span className="cf-task-count">{data.length}</span>
-                </h3>
-                {isRunning ? (
-                  <div className="cf-running-indicator">
-                    <Loader2 size="1em" className="cf-spinner" />
-                    <span>Running...</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="cf-add-task-button"
-                    onClick={startSelecting}
-                    disabled={isSelecting || editingTaskId !== null}
-                  >
-                    <MousePointer2 size="1em" />
-                    <span>Inspect Element</span>
-                  </button>
-                )}
+                <div className="cf-drag-handle">
+                  <div className="cf-drag-indicator"></div>
+                </div>
+                <div className="cf-task-header-content">
+                  <h3 className="cf-task-header-title">
+                    <button
+                      type="button"
+                      className="cf-toggle-button"
+                      onClick={() => setIsCollapsed((prev) => !prev)}
+                      title={isCollapsed ? 'Expand List' : 'Collapse List'}
+                    >
+                      {isCollapsed ? <ChevronsUp size="1.4em" /> : <ChevronsDown size="1.4em" />}
+                    </button>
+                    {isCollapsed ? 'ChoreFire' : 'Tasks'}{' '}
+                    <span className="cf-task-count">{data.length}</span>
+                  </h3>
+                  {isRunning ? (
+                    <div className="cf-running-indicator">
+                      <Loader2 size="1em" className="cf-spinner" />
+                      <span>Running</span>
+                    </div>
+                  ) : !isCollapsed ? (
+                    <button
+                      type="button"
+                      className="cf-add-task-button"
+                      onClick={startSelecting}
+                      disabled={isSelecting || editingTaskId !== null}
+                    >
+                      <MousePointer2 size="1em" />
+                      <span>Inspect</span>
+                    </button>
+                  ) : null}
+                </div>
               </div>
 
               {!isCollapsed && (
@@ -247,32 +330,58 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                               : 'cf-task-card-todo'
 
                       return (
-                        <button
+                        <div
                           key={task.id}
-                          type="button"
                           data-task-id={task.id}
                           className={`cf-task-card ${statusClass}`}
                           onClick={() => {
-                            if (editingTaskId !== task.id) {
-                              highlightElement(task.element_selector)
-                            }
+                            highlightElement(task.element_selector)
                           }}
                         >
                           <div className="cf-task-card-header">
-                            <span className="cf-task-number">#{index + 1}</span>
-                            <span className="cf-task-tag">{task.element_tag}</span>
-                            <div className="cf-task-selector">{task.element_selector}</div>
+                            <span className="cf-task-tag">&lt;{task.element_tag}&gt;</span>
+                            <div className="cf-task-selector" title={task.element_selector}>
+                              {task.element_selector}
+                            </div>
                             {!isRunning && (
-                              <button
-                                type="button"
-                                className="cf-delete-button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  deleteTask(task.id)
-                                }}
-                              >
-                                <X size="1em" />
-                              </button>
+                              <div className="cf-task-actions">
+                                <button
+                                  type="button"
+                                  className="cf-locate-button"
+                                  onClick={() => {
+                                    highlightElement(task.element_selector)
+                                  }}
+                                  title="Locate"
+                                >
+                                  <LocateFixed size="1.15em" />
+                                </button>
+                                {editingTaskId !== task.id && (
+                                  <button
+                                    type="button"
+                                    className="cf-edit-button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      startEdit(task)
+                                    }}
+                                    title="Edit"
+                                  >
+                                    <Pencil size="1em" />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="cf-delete-button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    deleteTask(task.id)
+                                    setEditingTaskId(null)
+                                    setPromptInput('')
+                                  }}
+                                  title="Remove"
+                                >
+                                  <Trash2 size="1em" />
+                                </button>
+                              </div>
                             )}
                           </div>
 
@@ -293,7 +402,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                                     e.stopPropagation()
                                     saveEdit()
                                   }}
-                                  disabled={promptInput.trim() === ''}
+                                  disabled={!promptInput.trim()}
                                 >
                                   Save
                                 </button>
@@ -302,6 +411,9 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                                   className="cf-cancel-button"
                                   onClick={(e) => {
                                     e.stopPropagation()
+                                    if (!promptInput.trim() && !task.user_prompt) {
+                                      deleteTask(task.id)
+                                    }
                                     setEditingTaskId(null)
                                     setPromptInput('')
                                   }}
@@ -311,27 +423,9 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                               </div>
                             </div>
                           ) : (
-                            <button
-                              type="button"
-                              className="cf-task-prompt"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (!isRunning) {
-                                  startEdit(task)
-                                }
-                              }}
-                              disabled={isRunning}
-                            >
-                              {task.user_prompt || (
-                                <span className="cf-prompt-placeholder">
-                                  {isRunning
-                                    ? 'No requirement description'
-                                    : 'Click to add requirement description...'}
-                                </span>
-                              )}
-                            </button>
+                            <div className="cf-task-prompt">{task.user_prompt}</div>
                           )}
-                        </button>
+                        </div>
                       )
                     })}
                   </div>

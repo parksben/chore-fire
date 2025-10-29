@@ -1,0 +1,987 @@
+// Variables
+$color-primary: #667eea;
+$color-primary-dark: #764ba2;
+$color-success: #10b981;
+$color-success-dark: #059669;
+$color-danger: #ef4444;
+$color-info: #60a5fa;
+$color-text-light: #e5e7eb;
+$color-text-medium: #d1d5db;
+$color-text-gray: #9ca3af;
+$color-text-dark: #6b7280;
+$color-bg-dark: #1f2937;
+$color-bg-darker: #111827;
+$color-bg-darkest: #0f172a;
+$color-border: rgba(75, 85, 99, 0.5);
+$color-border-light: rgba(75, 85, 99, 0.3);
+
+$border-radius-sm: 0.5rem;
+$border-radius-md: 0.75rem;
+$border-radius-lg: 1rem;
+$border-radius-xl: 0.875rem;
+
+$transition-fast: all 0.2s ease;
+$transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Mixins
+@mixin gradient-primary {
+  background: linear-gradient(
+    135deg,
+    $color-primary 0%,
+    $color-primary-dark 100%
+  );
+}
+
+@mixin gradient-success {
+  background: linear-gradient(
+    135deg,
+    $color-success 0%,
+    $color-success-dark 100%
+  );
+}
+
+@mixin gradient-dark {
+  background: linear-gradient(145deg, $color-bg-dark 0%, $color-bg-darker 100%);
+}
+
+@mixin card-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+@mixin hover-lift {
+  &:hover {
+    transform: translateY(-2px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Keyframes
+@keyframes cf-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes cf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cf-slide-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes cf-pulse {
+  0%,
+  100% {
+    outline-color: $color-primary;
+  }
+  50% {
+    outline-color: $color-primary-dark;
+  }
+}
+
+@keyframes cf-highlight-fade {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    background-color: rgba(102, 126, 234, 0.3);
+  }
+  10% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0.5);
+    background-color: rgba(102, 126, 234, 0.2);
+  }
+  20% {
+    box-shadow: 0 0 0 20px rgba(102, 126, 234, 0.3);
+    background-color: rgba(102, 126, 234, 0.1);
+  }
+  30% {
+    box-shadow: 0 0 0 30px rgba(102, 126, 234, 0.1);
+    background-color: rgba(102, 126, 234, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 0 40px rgba(102, 126, 234, 0);
+    background-color: transparent;
+  }
+  60% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.5);
+    background-color: rgba(102, 126, 234, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0.3);
+    background-color: rgba(102, 126, 234, 0.1);
+  }
+  80% {
+    box-shadow: 0 0 0 20px rgba(102, 126, 234, 0.1);
+    background-color: rgba(102, 126, 234, 0.05);
+  }
+  90% {
+    box-shadow: 0 0 0 30px rgba(102, 126, 234, 0);
+    background-color: transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 40px rgba(102, 126, 234, 0);
+    background-color: transparent;
+  }
+}
+
+@keyframes cf-border-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cf-pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4),
+      0 0 20px rgba(102, 126, 234, 0.2), inset 0 0 10px rgba(102, 126, 234, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2),
+      0 0 30px rgba(102, 126, 234, 0.3),
+      inset 0 0 15px rgba(102, 126, 234, 0.15);
+  }
+}
+
+// Main styles
+.cf-task-draggable {
+  font-size: 16px;
+  @include gradient-dark;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 10px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-border;
+  width: 24em;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+
+  &:has(.cf-task-container-empty) {
+    width: 15em;
+  }
+
+  &-collapsed {
+    width: auto;
+    min-width: 10em;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 5px 10px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    &:has(.cf-task-container-empty) {
+      width: auto;
+      min-width: 9.2em;
+    }
+  }
+}
+
+.cf-task-list {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-empty-drag-handle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.5em 0 0;
+  cursor: move;
+}
+
+.cf-empty-header {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  z-index: 10;
+  line-height: 1;
+}
+
+.cf-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2em 0;
+}
+
+.cf-empty-icon {
+  font-size: 3em;
+  line-height: 1;
+  animation: cf-float 3s ease-in-out infinite;
+}
+
+.cf-empty-title {
+  font-size: 1.25em;
+  font-weight: 600;
+  color: $color-text-light;
+  margin: 0.3em 0 0;
+}
+
+.cf-empty-description {
+  font-size: 0.875em;
+  color: $color-text-gray;
+  text-align: center;
+  margin: 0 0 1.5em;
+}
+
+.cf-start-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.625em 1.5em;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #ffffff;
+  @include gradient-primary;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: $transition-smooth;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+  }
+
+  &:hover {
+    &::before {
+      left: 100%;
+    }
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+}
+
+.cf-task-container {
+  display: flex;
+  flex-direction: column;
+
+  &-empty {
+    position: relative;
+  }
+}
+
+.cf-task-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 0.2em 1.25em 1.25em;
+  background: linear-gradient(
+    180deg,
+    rgba(55, 65, 81, 0.3) 0%,
+    transparent 100%
+  );
+  border-radius: $border-radius-lg $border-radius-lg 0 0;
+  cursor: move;
+
+  & > button {
+    cursor: pointer;
+  }
+
+  .cf-task-header-title {
+    font-size: 1em;
+    font-weight: 600;
+    color: $color-text-light;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  .cf-task-draggable-collapsed & {
+    padding: 0.875em 1em;
+    gap: 0.5em;
+    border-radius: $border-radius-lg;
+  }
+}
+
+.cf-drag-handle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.25em 0 0;
+  cursor: move;
+
+  .cf-task-draggable-collapsed & {
+    display: none;
+  }
+}
+
+.cf-drag-indicator {
+  width: 2.5em;
+  height: 0.25em;
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+  transition: $transition-normal;
+
+  .cf-task-header:hover & {
+    background: rgba(156, 163, 175, 0.5);
+  }
+}
+
+.cf-task-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.cf-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75em;
+  height: 1.75em;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: $transition-normal;
+  color: $color-text-gray;
+
+  &:hover {
+    color: $color-text-light;
+    background: rgba(102, 126, 234, 0.15);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.cf-task-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.5em;
+  font-size: 0.75em;
+  font-weight: 600;
+  color: $color-text-light;
+  background: rgba(102, 126, 234, 0.2);
+  border: none;
+  border-radius: 9999px;
+}
+
+.cf-add-task-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375em;
+  padding: 0.5em 1.2em;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #ffffff;
+  @include gradient-primary;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: $transition-smooth;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+  }
+
+  &:hover {
+    &::before {
+      left: 100%;
+    }
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+
+  &:disabled {
+    background: rgba(102, 126, 234, 0.3);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.cf-running-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.375em 1em;
+  margin-left: 1em;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: $color-success;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.15) 0%,
+    rgba(16, 185, 129, 0.08) 100%
+  );
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: $border-radius-sm;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(16, 185, 129, 0.1);
+
+  .cf-spinner {
+    animation: cf-spin 1s linear infinite;
+  }
+}
+
+.cf-task-scroll-container {
+  border-top: 1px solid $color-border-light;
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 0 0 $border-radius-lg $border-radius-lg;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(17, 24, 39, 0.3);
+    border-radius: 3px;
+    margin: 0.25em 0;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg,
+      rgba(102, 126, 234, 0.5) 0%,
+      rgba(118, 75, 162, 0.5) 100%
+    );
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+
+    &:hover {
+      background: linear-gradient(
+        180deg,
+        rgba(102, 126, 234, 0.7) 0%,
+        rgba(118, 75, 162, 0.7) 100%
+      );
+      border-color: rgba(102, 126, 234, 0.5);
+    }
+  }
+}
+
+.cf-task-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 1.25em;
+  background: linear-gradient(
+    180deg,
+    rgba(17, 24, 39, 0.2) 0%,
+    transparent 50%
+  );
+}
+
+.cf-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 1em;
+  background: linear-gradient(
+    145deg,
+    rgba(31, 41, 55, 0.95) 0%,
+    rgba(17, 24, 39, 0.9) 100%
+  );
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: $transition-smooth;
+  @include card-shadow;
+  text-align: left;
+
+  &:hover {
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 12px 28px rgba(102, 126, 234, 0.25),
+      0 8px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(-3px) scale(1.01);
+    background: linear-gradient(
+      145deg,
+      rgba(31, 41, 55, 1) 0%,
+      rgba(17, 24, 39, 0.95) 100%
+    );
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.cf-task-card-doing {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 60deg,
+      rgba(102, 126, 234, 0.9) 90deg,
+      rgba(118, 75, 162, 1) 120deg,
+      rgba(16, 185, 129, 0.9) 150deg,
+      transparent 180deg,
+      transparent 360deg
+    );
+    animation: cf-border-rotate 6s linear infinite;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: linear-gradient(
+      145deg,
+      rgba(31, 41, 55, 0.98) 0%,
+      rgba(17, 24, 39, 0.95) 100%
+    );
+    border-radius: calc(#{$border-radius-md} - 1px);
+    z-index: 1;
+  }
+
+  > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  &:hover::after {
+    background: linear-gradient(
+      145deg,
+      rgba(31, 41, 55, 1) 0%,
+      rgba(17, 24, 39, 0.98) 100%
+    );
+  }
+
+  &:hover {
+    animation: cf-hover-lift 0.3s ease forwards;
+  }
+}
+
+@keyframes cf-hover-lift {
+  to {
+    transform: translateY(-3px) scale(1.01);
+  }
+}
+
+.cf-task-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.cf-task-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  font-size: 0.75em;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: #c4b5fd;
+  background: transparent;
+  border: none;
+  flex-shrink: 0;
+}
+
+.cf-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  flex-shrink: 0;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.3em;
+    height: 1.3em;
+    padding: 0.1em;
+    font-size: 0.9em;
+    color: $color-text-gray;
+    background: transparent;
+    border: none;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    transition: $transition-normal;
+    flex-shrink: 0;
+  }
+}
+
+.cf-locate-button {
+  &:hover {
+    color: $color-primary;
+  }
+
+  &:active {
+    color: $color-primary;
+    transform: scale(0.95);
+  }
+}
+
+.cf-edit-button {
+  &:hover {
+    color: $color-info;
+  }
+
+  &:active {
+    color: $color-info;
+    transform: scale(0.95);
+  }
+}
+
+.cf-delete-button {
+  &:hover {
+    color: $color-danger;
+  }
+
+  &:active {
+    color: $color-danger;
+    transform: scale(0.95);
+  }
+}
+
+.cf-task-selector {
+  font-size: 0.75em;
+  font-family: 'Courier New', monospace;
+  color: $color-text-gray;
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-task-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  width: 100%;
+}
+
+.cf-task-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.875em;
+  font-size: 0.85em;
+  font-family: inherit;
+  color: $color-text-light;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.9) 0%,
+    rgba(17, 24, 39, 0.7) 100%
+  );
+  border: 0.5px solid rgba(102, 126, 234, 0.35);
+  border-radius: 0.625rem;
+  resize: vertical;
+  transition: $transition-normal;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba(17, 24, 39, 0.95) 0%,
+      rgba(17, 24, 39, 0.8) 100%
+    );
+  }
+
+  &::placeholder {
+    color: $color-text-dark;
+  }
+}
+
+.cf-task-edit-actions {
+  display: flex;
+  gap: 0.5em;
+  justify-content: flex-end;
+}
+
+.cf-save-button,
+.cf-cancel-button {
+  padding: 0.5em 0.8em;
+  font-size: 0.8em;
+  font-weight: 600;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: $transition-fast;
+}
+
+.cf-save-button {
+  color: #ffffff;
+  @include gradient-success;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: $transition-normal;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+  }
+
+  &:hover {
+    &::before {
+      left: 100%;
+    }
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: rgba(16, 185, 129, 0.5);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.cf-cancel-button {
+  color: $color-text-light;
+  background: linear-gradient(
+    135deg,
+    rgba(75, 85, 99, 0.6) 0%,
+    rgba(75, 85, 99, 0.4) 100%
+  );
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: $transition-normal;
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(75, 85, 99, 0.8) 0%,
+      rgba(75, 85, 99, 0.6) 100%
+    );
+    border-color: rgba(75, 85, 99, 0.7);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+  }
+}
+
+.cf-task-prompt {
+  font-size: 0.85em;
+  color: $color-text-medium;
+  background: transparent;
+  padding: 0.5em 0;
+  border: none;
+  transition: $transition-normal;
+  cursor: text;
+  width: 100%;
+  text-align: left;
+  min-height: 2em;
+  display: flex;
+  align-items: flex-start;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  line-height: 1.6;
+
+  &:hover {
+    color: $color-text-light;
+  }
+
+  &:disabled:hover {
+    color: $color-text-medium;
+  }
+}
+
+.cf-selecting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  padding: 1em;
+  pointer-events: none;
+}
+
+.cf-selecting-tip {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 1em 1.5em;
+  @include gradient-primary;
+  border-radius: $border-radius-xl;
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: cf-slide-down 0.3s ease;
+  pointer-events: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  .cf-tip-icon {
+    color: #ffffff;
+  }
+
+  .cf-tip-text {
+    font-size: 1em;
+    font-weight: 600;
+    color: #ffffff;
+  }
+}
+
+.cf-cancel-selecting-button {
+  padding: 0.5em 1em;
+  font-size: 0.875em;
+  font-weight: 600;
+  color: $color-primary;
+  background: #ffffff;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: $transition-normal;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  &:hover {
+    background: #f3f4f6;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+body.cf-selecting-mode {
+  cursor: crosshair !important;
+
+  * {
+    cursor: crosshair !important;
+  }
+}
+
+.cf-element-hover {
+  outline: 3px solid $color-primary !important;
+  outline-offset: 2px;
+  background: rgba(102, 126, 234, 0.1) !important;
+  position: relative;
+  z-index: 9998 !important;
+  animation: cf-pulse 1s ease-in-out infinite;
+}
+
+.cf-task-highlight {
+  animation: cf-highlight-fade 1.5s ease-in-out !important;
+  position: relative !important;
+  z-index: 9997 !important;
+}
+
+// Media queries
+@media (max-width: 640px) {
+  .cf-task-header {
+    flex-direction: column;
+    gap: 0.75em;
+    align-items: stretch;
+  }
+
+  .cf-add-task-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cf-selecting-tip {
+    flex-direction: column;
+    text-align: center;
+  }
+}

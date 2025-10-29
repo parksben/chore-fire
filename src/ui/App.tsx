@@ -1,71 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react'
-import './App.css'
+import { type FC, useCallback, useState } from 'react'
 import type { Task } from '../server/common/store'
-import { TaskStatus } from '../server/common/store'
-import Draggable from './components/Draggable'
+import './App.scss'
 import TaskList from './components/TaskList'
+import { TASK_LIST } from './mock.ts'
 
-const App: React.FC = () => {
-  const elementRef = useRef<HTMLDivElement | null>(null)
-
-  // Mock data for demonstration
-  const mockTasks: Task[] = [
-    {
-      id: 'mock-1',
-      page_url: 'http://localhost:3000',
-      element_selector: 'div.cf-bg-white.cf-rounded-lg.cf-p-8:nth-child(1)',
-      element_tag: 'div',
-      element_html:
-        '<div class="cf-bg-white cf-rounded-lg cf-p-8 cf-shadow-lg cf-border cf-border-gray-200">...</div>',
-      element_screenshot_base64: '',
-      user_prompt: '将标题改为"欢迎使用 Chore Fire"，并调整字体大小为 2.5em',
-      status: TaskStatus.CANCEL,
-    },
-    {
-      id: 'mock-2',
-      page_url: 'http://localhost:3000',
-      element_selector: 'div.cf-bg-gradient-to-r.cf-from-blue-50.cf-to-indigo-50',
-      element_tag: 'div',
-      element_html: '<div class="cf-bg-gradient-to-r cf-from-blue-50 cf-to-indigo-50">...</div>',
-      element_screenshot_base64: '',
-      user_prompt: '给所有功能卡片添加悬停动画效果，鼠标悬停时卡片稍微上移并增加阴影',
-      status: TaskStatus.DONE,
-    },
-    {
-      id: 'mock-3',
-      page_url: 'http://localhost:3000',
-      element_selector: 'button.cf-bg-blue-500:nth-child(1)',
-      element_tag: 'button',
-      element_html:
-        '<button type="button" class="cf-bg-blue-500 hover:cf-bg-blue-600">Get Started</button>',
-      element_screenshot_base64: '',
-      user_prompt: '修改按钮颜色为渐变紫色，保持圆角和阴影效果',
-      status: TaskStatus.DOING,
-    },
-    {
-      id: 'mock-4',
-      page_url: 'http://localhost:3000',
-      element_selector: 'div.cf-grid.cf-grid-cols-1.md\\:cf-grid-cols-2.lg\\:cf-grid-cols-3',
-      element_tag: 'div',
-      element_html:
-        '<div class="cf-grid cf-grid-cols-1 md:cf-grid-cols-2 lg:cf-grid-cols-3">...</div>',
-      element_screenshot_base64: '',
-      user_prompt: '优化响应式布局，在小屏幕上显示为单列，中等屏幕显示两列',
-      status: TaskStatus.TODO,
-    },
-    {
-      id: 'mock-5',
-      page_url: 'http://localhost:3000',
-      element_selector: 'div.cf-text-4xl.cf-mb-4',
-      element_tag: 'div',
-      element_html: '<div class="cf-text-4xl cf-mb-4">🎯</div>',
-      element_screenshot_base64: '',
-      user_prompt: '给所有 emoji 图标添加缩放动画，让页面更有活力',
-      status: TaskStatus.TODO,
-    },
-  ]
-
-  const [tasks, setTasks] = useState<Task[]>(mockTasks)
+const App: FC = () => {
+  const [tasks, setTasks] = useState<Task[]>(TASK_LIST)
 
   const handleTasksChange = useCallback((newTasks: Task[]) => {
     setTasks(newTasks)
@@ -74,412 +14,130 @@ const App: React.FC = () => {
 
   return (
     <>
-      <div className="chore-fire-ui cf-text-center cf-max-w-4xl cf-mx-auto cf-p-5">
-        <header className="cf-bg-gray-800 cf-p-5 cf-text-white cf-rounded-lg cf-mb-5">
-          <h1 className="cf-text-4xl cf-font-bold cf-mb-2">Chore Fire UI</h1>
-          <p className="cf-text-xl cf-opacity-80">React + TypeScript UI for Chore Fire</p>
-        </header>
-        <main className="cf-py-5 cf-space-y-8">
-          {/* Hero Section */}
-          <div className="cf-bg-white cf-rounded-lg cf-p-8 cf-shadow-lg cf-border cf-border-gray-200">
-            <h2 className="cf-text-3xl cf-font-semibold cf-text-gray-800 cf-mb-5">
-              Welcome to Chore Fire
-            </h2>
-            <p className="cf-text-gray-600 cf-leading-relaxed cf-text-lg">
-              A powerful graphical tool for web developers that quickly submits large amounts of
-              modification requirements in web UI to your AI coding assistant.
-            </p>
-            <div className="cf-mt-6 cf-flex cf-gap-4 cf-justify-center">
-              <button
-                type="button"
-                className="cf-bg-blue-500 hover:cf-bg-blue-600 cf-text-white cf-px-6 cf-py-2 cf-rounded-md cf-font-medium cf-transition-colors"
-              >
-                Get Started
-              </button>
-              <button
-                type="button"
-                className="cf-bg-gray-200 hover:cf-bg-gray-300 cf-text-gray-800 cf-px-6 cf-py-2 cf-rounded-md cf-font-medium cf-transition-colors"
-              >
-                Learn More
-              </button>
-            </div>
-          </div>
+      <TaskList data={tasks} onChange={handleTasksChange} isRunning={false} />
 
-          {/* Features Section */}
-          <div
-            className="cf-bg-gradient-to-r cf-from-blue-50 cf-to-indigo-50 cf-rounded-lg cf-p-8 cf-shadow-lg"
-            ref={elementRef}
-          >
-            <h2 className="cf-text-3xl cf-font-bold cf-text-gray-800 cf-mb-8 cf-text-center">
-              🚀 核心功能特性
-            </h2>
-            <div className="cf-grid cf-grid-cols-1 md:cf-grid-cols-2 lg:cf-grid-cols-3 cf-gap-6">
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md cf-border">
-                <div className="cf-text-4xl cf-mb-4">🎯</div>
-                <h3 className="cf-text-xl cf-font-semibold cf-mb-3 cf-text-gray-800">精准定位</h3>
-                <p className="cf-text-gray-600">
-                  通过可视化界面精确定位需要修改的 UI 元素，提高开发效率
-                </p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md cf-border">
-                <div className="cf-text-4xl cf-mb-4">⚡</div>
-                <h3 className="cf-text-xl cf-font-semibold cf-mb-3 cf-text-gray-800">快速提交</h3>
-                <p className="cf-text-gray-600">批量提交大量修改需求，节省重复性工作时间</p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md cf-border">
-                <div className="cf-text-4xl cf-mb-4">🤖</div>
-                <h3 className="cf-text-xl cf-font-semibold cf-mb-3 cf-text-gray-800">AI 助手</h3>
-                <p className="cf-text-gray-600">与 AI 编程助手深度集成，智能理解修改意图</p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md cf-border">
-                <div className="cf-text-4xl cf-mb-4">🎨</div>
-                <h3 className="cf-text-xl cf-font-semibold cf-mb-3 cf-text-gray-800">可视化操作</h3>
-                <p className="cf-text-gray-600">直观的图形界面，所见即所得的编辑体验</p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md cf-border">
-                <div className="cf-text-4xl cf-mb-4">🔧</div>
-                <h3 className="cf-text-xl cf-font-semibold cf-mb-3 cf-text-gray-800">易于集成</h3>
-                <p className="cf-text-gray-600">支持多种前端框架，快速集成到现有项目中</p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md cf-border">
-                <div className="cf-text-4xl cf-mb-4">📱</div>
-                <h3 className="cf-text-xl cf-font-semibold cf-mb-3 cf-text-gray-800">响应式设计</h3>
-                <p className="cf-text-gray-600">适配各种屏幕尺寸，在不同设备上都有良好体验</p>
-              </div>
+      <div className="app-container">
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-content">
+            <div className="hero-icon">🔥</div>
+            <h1 className="hero-title">Chore Fire</h1>
+            <p className="hero-subtitle">强大的任务管理工具，让你的工作流程如火焰般高效燃烧</p>
+            <div className="hero-badges">
+              <span className="badge">⚡ 高性能</span>
+              <span className="badge">🎨 美观设计</span>
+              <span className="badge">🚀 易于使用</span>
             </div>
           </div>
+        </section>
 
-          {/* How it Works */}
-          <div className="cf-bg-white cf-rounded-lg cf-p-8 cf-shadow-lg cf-border cf-border-gray-200">
-            <h2 className="cf-text-3xl cf-font-bold cf-text-gray-800 cf-mb-8 cf-text-center">
-              📋 使用步骤
-            </h2>
-            <div className="cf-space-y-6">
-              <div className="cf-flex cf-items-start cf-space-x-4">
-                <div className="cf-flex-shrink-0 cf-w-10 cf-h-10 cf-bg-blue-500 cf-text-white cf-rounded-full cf-flex cf-items-center cf-justify-center cf-font-bold">
-                  1
-                </div>
-                <div>
-                  <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-2">安装配置</h3>
-                  <p className="cf-text-gray-600">
-                    将 Chore Fire 插件集成到您的项目中，只需几行代码即可完成配置
-                  </p>
-                </div>
-              </div>
-              <div className="cf-flex cf-items-start cf-space-x-4">
-                <div className="cf-flex-shrink-0 cf-w-10 cf-h-10 cf-bg-blue-500 cf-text-white cf-rounded-full cf-flex cf-items-center cf-justify-center cf-font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-2">
-                    可视化选择
-                  </h3>
-                  <p className="cf-text-gray-600">
-                    在浏览器中打开您的应用，通过点击直接选择需要修改的 UI 元素
-                  </p>
-                </div>
-              </div>
-              <div className="cf-flex cf-items-start cf-space-x-4">
-                <div className="cf-flex-shrink-0 cf-w-10 cf-h-10 cf-bg-blue-500 cf-text-white cf-rounded-full cf-flex cf-items-center cf-justify-center cf-font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-2">描述需求</h3>
-                  <p className="cf-text-gray-600">
-                    为每个选中的元素添加修改描述，支持自然语言描述修改需求
-                  </p>
-                </div>
-              </div>
-              <div className="cf-flex cf-items-start cf-space-x-4">
-                <div className="cf-flex-shrink-0 cf-w-10 cf-h-10 cf-bg-blue-500 cf-text-white cf-rounded-full cf-flex cf-items-center cf-justify-center cf-font-bold">
-                  4
-                </div>
-                <div>
-                  <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-2">批量提交</h3>
-                  <p className="cf-text-gray-600">
-                    一键提交所有修改需求给 AI 助手，获得精确的代码修改建议
-                  </p>
-                </div>
-              </div>
+        {/* Features Section */}
+        <section className="features-section">
+          <h2 className="section-title">✨ 核心特性</h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">📝</div>
+              <h3>任务管理</h3>
+              <p>轻松创建、编辑和组织你的任务列表，支持拖拽排序和优先级设置</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">⚙️</div>
+              <h3>自动化工作流</h3>
+              <p>配置自动化脚本，让重复性工作自动完成，提升工作效率</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📊</div>
+              <h3>数据可视化</h3>
+              <p>直观的数据展示，实时追踪任务进度和完成情况</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🔔</div>
+              <h3>智能提醒</h3>
+              <p>设置任务提醒，永远不会错过重要的截止日期和待办事项</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🎯</div>
+              <h3>目标追踪</h3>
+              <p>设定长期目标，分解为可执行的小任务，逐步实现你的梦想</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🌈</div>
+              <h3>主题定制</h3>
+              <p>多种主题选择，自定义界面外观，打造专属的工作空间</p>
             </div>
           </div>
+        </section>
 
-          {/* Statistics */}
-          <div className="cf-bg-gradient-to-r cf-from-green-50 cf-to-emerald-50 cf-rounded-lg cf-p-8 cf-shadow-lg">
-            <h2 className="cf-text-3xl cf-font-bold cf-text-gray-800 cf-mb-8 cf-text-center">
-              📊 效率提升数据
-            </h2>
-            <div className="cf-grid cf-grid-cols-1 md:cf-grid-cols-4 cf-gap-6">
-              <div className="cf-text-center cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-text-4xl cf-font-bold cf-text-green-600 cf-mb-2">85%</div>
-                <p className="cf-text-gray-600">开发时间节省</p>
-              </div>
-              <div className="cf-text-center cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-text-4xl cf-font-bold cf-text-blue-600 cf-mb-2">10x</div>
-                <p className="cf-text-gray-600">修改效率提升</p>
-              </div>
-              <div className="cf-text-center cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-text-4xl cf-font-bold cf-text-purple-600 cf-mb-2">1000+</div>
-                <p className="cf-text-gray-600">开发者使用</p>
-              </div>
-              <div className="cf-text-center cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-text-4xl cf-font-bold cf-text-orange-600 cf-mb-2">99%</div>
-                <p className="cf-text-gray-600">用户满意度</p>
-              </div>
+        {/* Stats Section */}
+        <section className="stats-section">
+          <h2 className="section-title">📈 统计信息</h2>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-value">{tasks.length}</div>
+              <div className="stat-label">总任务数</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{tasks.filter((t) => t.status === 'done').length}</div>
+              <div className="stat-label">已完成</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{tasks.filter((t) => t.status === 'doing').length}</div>
+              <div className="stat-label">进行中</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{tasks.filter((t) => t.status === 'todo').length}</div>
+              <div className="stat-label">待开始</div>
             </div>
           </div>
+        </section>
 
-          {/* FAQ Section */}
-          <div className="cf-bg-white cf-rounded-lg cf-p-8 cf-shadow-lg cf-border cf-border-gray-200">
-            <h2 className="cf-text-3xl cf-font-bold cf-text-gray-800 cf-mb-8 cf-text-center">
-              ❓ 常见问题
-            </h2>
-            <div className="cf-space-y-6">
-              <div className="cf-border-b cf-border-gray-200 cf-pb-6">
-                <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-3">
-                  Chore Fire 支持哪些前端框架？
-                </h3>
-                <p className="cf-text-gray-600">
-                  Chore Fire 支持 React、Vue、Angular 等主流前端框架，也可以在原生 HTML/CSS/JS
-                  项目中使用。
-                </p>
+        {/* Tips Section */}
+        <section className="tips-section">
+          <h2 className="section-title">💡 使用技巧</h2>
+          <div className="tips-list">
+            <div className="tip-item">
+              <span className="tip-number">1</span>
+              <div className="tip-content">
+                <h4>快速添加任务</h4>
+                <p>使用快捷键 Ctrl+N (Mac: Cmd+N) 快速创建新任务</p>
               </div>
-              <div className="cf-border-b cf-border-gray-200 cf-pb-6">
-                <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-3">
-                  如何与 AI 编程助手集成？
-                </h3>
-                <p className="cf-text-gray-600">
-                  Chore Fire 提供了标准的 API 接口，可以轻松与 GitHub Copilot、ChatGPT、Claude 等 AI
-                  助手集成。
-                </p>
+            </div>
+            <div className="tip-item">
+              <span className="tip-number">2</span>
+              <div className="tip-content">
+                <h4>拖拽排序</h4>
+                <p>直接拖动任务卡片即可调整任务的优先级顺序</p>
               </div>
-              <div className="cf-border-b cf-border-gray-200 cf-pb-6">
-                <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-3">
-                  工具的学习成本高吗？
-                </h3>
-                <p className="cf-text-gray-600">
-                  不高！Chore Fire 设计简洁直观，大多数开发者可以在 5 分钟内上手使用。
-                </p>
+            </div>
+            <div className="tip-item">
+              <span className="tip-number">3</span>
+              <div className="tip-content">
+                <h4>批量操作</h4>
+                <p>按住 Shift 键可以选择多个任务进行批量操作</p>
               </div>
-              <div className="cf-border-b cf-border-gray-200 cf-pb-6">
-                <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-3">
-                  是否支持团队协作？
-                </h3>
-                <p className="cf-text-gray-600">
-                  是的，Chore Fire 支持导出修改需求配置文件，可以在团队成员间共享和协作。
-                </p>
-              </div>
-              <div>
-                <h3 className="cf-text-xl cf-font-semibold cf-text-gray-800 cf-mb-3">
-                  工具是否免费使用？
-                </h3>
-                <p className="cf-text-gray-600">
-                  Chore Fire 提供免费的社区版本，包含基础功能。专业版提供更多高级特性和技术支持。
-                </p>
+            </div>
+            <div className="tip-item">
+              <span className="tip-number">4</span>
+              <div className="tip-content">
+                <h4>标签分类</h4>
+                <p>为任务添加标签，便于快速筛选和查找相关任务</p>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Testimonials */}
-          <div className="cf-bg-gradient-to-r cf-from-purple-50 cf-to-pink-50 cf-rounded-lg cf-p-8 cf-shadow-lg">
-            <h2 className="cf-text-3xl cf-font-bold cf-text-gray-800 cf-mb-8 cf-text-center">
-              💬 用户评价
-            </h2>
-            <div className="cf-grid cf-grid-cols-1 md:cf-grid-cols-2 cf-gap-6">
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-flex cf-items-center cf-mb-4">
-                  <div className="cf-w-12 cf-h-12 cf-bg-blue-500 cf-rounded-full cf-flex cf-items-center cf-justify-center cf-text-white cf-font-bold cf-mr-4">
-                    张
-                  </div>
-                  <div>
-                    <h4 className="cf-font-semibold cf-text-gray-800">张三</h4>
-                    <p className="cf-text-sm cf-text-gray-600">前端开发工程师</p>
-                  </div>
-                </div>
-                <p className="cf-text-gray-600 cf-italic">
-                  "Chore Fire
-                  彻底改变了我的开发工作流程，以前需要花费大量时间描述修改需求，现在只需要点击和描述即可，效率提升了数倍！"
-                </p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-flex cf-items-center cf-mb-4">
-                  <div className="cf-w-12 cf-h-12 cf-bg-green-500 cf-rounded-full cf-flex cf-items-center cf-justify-center cf-text-white cf-font-bold cf-mr-4">
-                    李
-                  </div>
-                  <div>
-                    <h4 className="cf-font-semibold cf-text-gray-800">李四</h4>
-                    <p className="cf-text-sm cf-text-gray-600">技术主管</p>
-                  </div>
-                </div>
-                <p className="cf-text-gray-600 cf-italic">
-                  "团队使用 Chore Fire 后，UI
-                  修改的沟通成本大大降低，设计师和开发者之间的协作更加高效了。"
-                </p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-flex cf-items-center cf-mb-4">
-                  <div className="cf-w-12 cf-h-12 cf-bg-purple-500 cf-rounded-full cf-flex cf-items-center cf-justify-center cf-text-white cf-font-bold cf-mr-4">
-                    王
-                  </div>
-                  <div>
-                    <h4 className="cf-font-semibold cf-text-gray-800">王五</h4>
-                    <p className="cf-text-sm cf-text-gray-600">全栈开发者</p>
-                  </div>
-                </div>
-                <p className="cf-text-gray-600 cf-italic">
-                  "作为一个独立开发者，Chore Fire 让我能够更专注于核心功能开发，UI
-                  调整变得轻松愉快。"
-                </p>
-              </div>
-              <div className="cf-bg-white cf-p-6 cf-rounded-lg cf-shadow-md">
-                <div className="cf-flex cf-items-center cf-mb-4">
-                  <div className="cf-w-12 cf-h-12 cf-bg-orange-500 cf-rounded-full cf-flex cf-items-center cf-justify-center cf-text-white cf-font-bold cf-mr-4">
-                    赵
-                  </div>
-                  <div>
-                    <h4 className="cf-font-semibold cf-text-gray-800">赵六</h4>
-                    <p className="cf-text-sm cf-text-gray-600">产品经理</p>
-                  </div>
-                </div>
-                <p className="cf-text-gray-600 cf-italic">
-                  "终于有了一个工具可以让我直观地表达产品需求，不再需要写长篇大论的需求文档了！"
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Call to Action */}
-          <div className="cf-bg-gradient-to-r cf-from-blue-600 cf-to-purple-600 cf-text-white cf-rounded-lg cf-p-8 cf-shadow-lg cf-text-center">
-            <h2 className="cf-text-3xl cf-font-bold cf-mb-4">🚀 准备好提升开发效率了吗？</h2>
-            <p className="cf-text-xl cf-mb-6 cf-opacity-90">
-              立即开始使用 Chore Fire，体验前所未有的 UI 开发体验
-            </p>
-            <div className="cf-flex cf-gap-4 cf-justify-center cf-flex-wrap">
-              <button
-                type="button"
-                className="cf-bg-white cf-text-blue-600 cf-px-8 cf-py-3 cf-rounded-md cf-font-bold cf-text-lg hover:cf-bg-gray-100 cf-transition-colors"
-              >
-                免费试用
-              </button>
-              <button
-                type="button"
-                className="cf-border-2 cf-border-white cf-text-white cf-px-8 cf-py-3 cf-rounded-md cf-font-bold cf-text-lg hover:cf-bg-white hover:cf-text-blue-600 cf-transition-colors"
-              >
-                查看文档
-              </button>
-            </div>
-          </div>
-
-          {/* Footer Info */}
-          <div className="cf-bg-gray-100 cf-rounded-lg cf-p-8 cf-text-center">
-            <div className="cf-grid cf-grid-cols-1 md:cf-grid-cols-3 cf-gap-6 cf-mb-6">
-              <div>
-                <h3 className="cf-text-lg cf-font-semibold cf-text-gray-800 cf-mb-3">快速链接</h3>
-                <ul className="cf-space-y-2 cf-text-gray-600">
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      使用指南
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      API 文档
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      示例项目
-                    </button>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="cf-text-lg cf-font-semibold cf-text-gray-800 cf-mb-3">社区</h3>
-                <ul className="cf-space-y-2 cf-text-gray-600">
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      GitHub
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      讨论区
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      问题反馈
-                    </button>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="cf-text-lg cf-font-semibold cf-text-gray-800 cf-mb-3">支持</h3>
-                <ul className="cf-space-y-2 cf-text-gray-600">
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      联系我们
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      技术支持
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="hover:cf-text-blue-600 cf-transition-colors cf-bg-transparent cf-border-none cf-p-0 cf-cursor-pointer"
-                    >
-                      更新日志
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="cf-border-t cf-border-gray-300 cf-pt-6">
-              <p className="cf-text-gray-600">
-                © 2024 Chore Fire. All rights reserved. | 让 UI 开发更简单、更高效
-              </p>
-            </div>
-          </div>
-        </main>
+        {/* Footer */}
+        <footer className="app-footer">
+          <p>🔥 Chore Fire - 让效率如火焰般燃烧</p>
+          <p className="footer-links">
+            <a href="#docs">📚 文档</a>
+            <span className="separator">•</span>
+            <a href="#github">💻 GitHub</a>
+            <span className="separator">•</span>
+            <a href="#support">💬 支持</a>
+          </p>
+        </footer>
       </div>
-
-      <Draggable className="cf-absolute cf-right-10 cf-top-32 cf-bg-blue-500 cf-text-white cf-shadow-lg cf-rounded-lg cf-text-sm cf-max-w-48">
-        <div className="cf-p-4">
-          <div className="cf-font-semibold cf-mb-1">💡 小贴士</div>
-          <div className="cf-text-xs cf-opacity-90">
-            拖拽这些浮动元素来体验 Chore Fire 的交互功能！点击左侧任务管理面板开始创建任务。
-          </div>
-        </div>
-      </Draggable>
-
-      <TaskList data={tasks} onChange={handleTasksChange} isRunning />
     </>
   )
 }

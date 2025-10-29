@@ -26,9 +26,12 @@ export default defineConfig({
       },
     },
   ],
-  // 配置 PostCSS 处理
   css: {
-    postcss: './postcss.config.js',
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+      },
+    },
   },
   root: './src/ui',
   build: {

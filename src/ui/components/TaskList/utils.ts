@@ -1,31 +1,6 @@
-export const getElementSelector = (element: HTMLElement): string => {
-  const path: string[] = []
-  let current: HTMLElement | null = element
+import { finder as getElementSelector } from '@medv/finder'
 
-  while (current && current !== document.body) {
-    let selector = current.tagName.toLowerCase()
-
-    if (current.id) {
-      selector += `#${current.id}`
-      path.unshift(selector)
-      break
-    } else {
-      const parent = current.parentElement
-      if (parent && current) {
-        const siblings = Array.from(parent.children)
-        const index = siblings.indexOf(current)
-        if (siblings.filter((s) => s.tagName === current?.tagName).length > 1) {
-          selector += `:nth-child(${index + 1})`
-        }
-      }
-      path.unshift(selector)
-    }
-
-    current = current.parentElement
-  }
-
-  return path.join(' > ')
-}
+export { getElementSelector }
 
 let highlightTimeout: NodeJS.Timeout | null = null
 
@@ -37,6 +12,7 @@ export const highlightElement = (selector: string) => {
 
   try {
     const element = document.querySelector(selector) as HTMLElement
+
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' })
 
