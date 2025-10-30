@@ -1,3 +1,4 @@
+import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { PassThrough } from 'node:stream'
 import Koa from 'koa'
@@ -6,6 +7,7 @@ import mount from 'koa-mount'
 import Router from 'koa-router'
 import staticDir from 'koa-static'
 import { getTaskProperties, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
+import { nanoid } from 'nanoid'
 
 export interface HttpServerParams {
   store: TaskStore
@@ -13,6 +15,9 @@ export interface HttpServerParams {
 }
 
 const TASK_STORE_EVENT_TYPE = Object.values(TaskActionType)
+
+const STATIC_FILE_DIRECTORY = path.join(__dirname, '../../ui')
+const IMAGE_DIRECTORY = path.join(__dirname, '../../ui/image')
 
 export function createHttpServer({ store, http_server_port: port }: HttpServerParams): Koa {
   const app = new Koa()
@@ -28,7 +33,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
         element_selector: data.element_selector as string,
         element_tag: data.element_tag || '',
         element_html: data.element_html || '',
-        element_screenshot_base64: data.element_screenshot_base64 || '',
+        element_screenshot: data.element_screenshot || '',
         user_prompt: data.user_prompt as string,
         status: data.status || TaskStatus.TODO,
       }
@@ -73,7 +78,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
       element_selector: taskData.element_selector,
       element_tag: taskData.element_tag || '',
       element_html: taskData.element_html || '',
-      element_screenshot_base64: taskData.element_screenshot_base64 || '',
+      element_screenshot: taskData.element_screenshot || '',
       user_prompt: taskData.user_prompt,
       status: taskData.status || TaskStatus.TODO,
     }
@@ -220,8 +225,31 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
     ctx.body = stream
   })
 
+  router.post('/upload-image', async (ctx: Router.RouterContext) => {
+    const file = (ctx.request.body as any)?.file as Buffer | undefined
+    if (!file) {
+      ctx.status = 400
+      ctx.body = { success: false, message: 'No file uploaded' }
+      return
+    }
+
+    const fileName = `${nanoid()}.png`
+    const filePath = path.join(IMAGE_DIRECTORY, fileName)
+
+    await fs.promises.mkdir(IMAGE_DIRECTORY, { recursive: true })
+    await fs.promises.writeFile(filePath, file)
+
+    const fileUrl = `/static/image/${fileName}`
+
+    ctx.body = {
+      success: true,
+      message: 'File uploaded successfully',
+      url: fileUrl,
+    }
+  })
+
   app.use(bodyParser())
-  app.use(mount('/static', staticDir(path.join(__dirname, '../../ui'))))
+  app.use(mount('/static', staticDir(STATIC_FILE_DIRECTORY)))
   app.use(router.routes())
   app.use(router.allowedMethods())
 

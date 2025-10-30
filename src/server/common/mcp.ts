@@ -32,7 +32,7 @@ export function createMcpServer({
             element_selector: z.string(),
             element_tag: z.string(),
             element_html: z.string(),
-            element_screenshot_base64: z.string(),
+            element_screenshot: z.string(),
             user_prompt: z.string(),
             status: z.enum(['todo', 'doing', 'done', 'cancel']),
           }),

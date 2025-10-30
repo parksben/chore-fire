@@ -22,7 +22,7 @@ export interface Task {
   element_selector: string
   element_tag: string
   element_html: string
-  element_screenshot_base64: string
+  element_screenshot: string
   user_prompt: string
   status: TaskStatus
 }
@@ -37,7 +37,7 @@ export const getTaskProperties = (data: Partial<Task>): Partial<Task> => ({
   element_selector: data?.element_selector,
   element_tag: data?.element_tag,
   element_html: data?.element_html,
-  element_screenshot_base64: data?.element_screenshot_base64,
+  element_screenshot: data?.element_screenshot,
   user_prompt: data?.user_prompt,
   status: data?.status,
 })

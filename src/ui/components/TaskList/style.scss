@@ -425,10 +425,6 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   transition: $transition-normal;
 
-  svg {
-    transition: rotateZ(180deg);
-  }
-
   &:hover {
     color: $color-danger;
     background: rgba(239, 68, 68, 0.1);

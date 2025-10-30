@@ -31,12 +31,32 @@ export const highlightElement = (selector: string) => {
 
 export const screenshotElement = async (element: HTMLElement): Promise<string> => {
   try {
-    const canvas = await snapdom.toCanvas(element, {
-      quality: 1,
+    const blob = await snapdom.toBlob(element, {
+      quality: 0.9,
       dpr: window.devicePixelRatio || 1,
     })
-    const dataUrl = canvas.toDataURL('image/png')
-    return dataUrl
+    return uploadImage(blob)
+  } catch {
+    return ''
+  }
+}
+
+export const uploadImage = async (imageBlob: Blob): Promise<string> => {
+  try {
+    const formData = new FormData()
+    formData.append('file', imageBlob, 'screenshot.png')
+
+    const response = await fetch('/chore-fire/upload-image', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const result = await response.json()
+    if (result?.data?.url) {
+      return `${window.location.origin}/chore-fire${result.data.url}`
+    } else {
+      return ''
+    }
   } catch {
     return ''
   }

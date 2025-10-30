@@ -5,7 +5,7 @@ import {
   ArrowDownToLine,
   ArrowUp,
   ArrowUpToLine,
-  Ban,
+  BrushCleaning,
   ChevronsDown,
   ChevronsUp,
   Copy,
@@ -95,7 +95,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
         element_selector: selector,
         element_tag: element.tagName.toLowerCase(),
         element_html: element.outerHTML,
-        element_screenshot_base64: '', // 可以后续添加截图功能
+        element_screenshot: '', // 可以后续添加截图功能
         user_prompt: '',
         status: TaskStatus.TODO,
       }
@@ -124,7 +124,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
         }
       })
 
-      newTask.element_screenshot_base64 = await screenshotElement(element)
+      newTask.element_screenshot = await screenshotElement(element)
       onChange(updatedTasks)
     },
     [isSelecting, hoveredElement, data, onChange],
@@ -383,9 +383,9 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                         className="cf-clear-button"
                         onClick={() => onChange([])}
                         disabled={isSelecting || editingTaskId !== null}
-                        title="Clear All"
+                        title="Clean"
                       >
-                        <Ban size="1em" />
+                        <BrushCleaning size="1.25em" />
                       </button>
                     )}
                     {isCollapsed && <span className="cf-task-count">{data.length}</span>}
