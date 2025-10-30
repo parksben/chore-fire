@@ -10,6 +10,8 @@ interface ServerConfig {
   project_namespace: string
   http_server_port: string
   local_mcp_server_name: string
+  http_server_only: boolean
+  mcp_server_only: boolean
 }
 
 interface RuntimeConfig {
@@ -32,14 +34,20 @@ const { values } = parseArgs({
       short: 'm',
       default: 'chore-fire',
     },
+    http_server_only: { type: 'boolean', short: 'o', default: false },
+    mcp_server_only: { type: 'boolean', short: 'c', default: false },
   },
 }) as { values: ServerConfig }
 
 const store = new TaskStore()
 const params = { store, ...values }
 
-createMcpServer(params)
-createHttpServer(params)
+if (!values.http_server_only) {
+  createMcpServer(params)
+}
+if (!values.mcp_server_only) {
+  createHttpServer(params)
+}
 
 const runtimeConfig: RuntimeConfig = {
   PROJECT_DIRECTORY: process.cwd(),

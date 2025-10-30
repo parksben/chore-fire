@@ -1,20 +1,11 @@
-import { type FC, useCallback, useState } from 'react'
-import type { Task } from '../server/common/store'
+import type { FC } from 'react'
 import './App.scss'
-import TaskList from './components/TaskList'
-import { TASK_LIST } from './mock.ts'
+import Controller from './components/Controller'
 
 const App: FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(TASK_LIST)
-
-  const handleTasksChange = useCallback((newTasks: Task[]) => {
-    setTasks(newTasks)
-    console.log('Tasks updated:', newTasks)
-  }, [])
-
   return (
     <>
-      <TaskList data={tasks} onChange={handleTasksChange} isRunning={false} />
+      <Controller />
 
       <div className="app-container">
         {/* Hero Section */}
@@ -73,19 +64,19 @@ const App: FC = () => {
           <h2 className="section-title">📈 统计信息</h2>
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-value">{tasks.length}</div>
+              <div className="stat-value">5</div>
               <div className="stat-label">总任务数</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{tasks.filter((t) => t.status === 'done').length}</div>
+              <div className="stat-value">1</div>
               <div className="stat-label">已完成</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{tasks.filter((t) => t.status === 'doing').length}</div>
+              <div className="stat-value">1</div>
               <div className="stat-label">进行中</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{tasks.filter((t) => t.status === 'todo').length}</div>
+              <div className="stat-value">3</div>
               <div className="stat-label">待开始</div>
             </div>
           </div>

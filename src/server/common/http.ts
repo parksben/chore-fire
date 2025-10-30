@@ -1,13 +1,14 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { PassThrough } from 'node:stream'
+import multer from '@koa/multer'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import mount from 'koa-mount'
 import Router from 'koa-router'
 import staticDir from 'koa-static'
-import { getTaskProperties, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
 import { nanoid } from 'nanoid'
+import { getTaskProperties, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
 
 export interface HttpServerParams {
   store: TaskStore
@@ -18,6 +19,14 @@ const TASK_STORE_EVENT_TYPE = Object.values(TaskActionType)
 
 const STATIC_FILE_DIRECTORY = path.join(__dirname, '../../ui')
 const IMAGE_DIRECTORY = path.join(__dirname, '../../ui/image')
+
+// 配置 multer 用于文件上传
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 限制 10MB
+  },
+})
 
 export function createHttpServer({ store, http_server_port: port }: HttpServerParams): Koa {
   const app = new Koa()
@@ -226,26 +235,30 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
   })
 
   router.post('/upload-image', async (ctx: Router.RouterContext) => {
-    const file = (ctx.request.body as any)?.file as Buffer | undefined
-    if (!file) {
-      ctx.status = 400
-      ctx.body = { success: false, message: 'No file uploaded' }
-      return
-    }
+    // biome-ignore lint/suspicious/noExplicitAny: use multer to handle file upload
+    await upload.single('file')(ctx as any, async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: use multer to handle file upload
+      const file = (ctx as any).file as Express.Multer.File | undefined
+      if (!file) {
+        ctx.status = 400
+        ctx.body = { success: false, message: 'No file uploaded' }
+        return
+      }
 
-    const fileName = `${nanoid()}.png`
-    const filePath = path.join(IMAGE_DIRECTORY, fileName)
+      const fileName = `${nanoid()}.png`
+      const filePath = path.join(IMAGE_DIRECTORY, fileName)
 
-    await fs.promises.mkdir(IMAGE_DIRECTORY, { recursive: true })
-    await fs.promises.writeFile(filePath, file)
+      await fs.promises.mkdir(IMAGE_DIRECTORY, { recursive: true })
+      await fs.promises.writeFile(filePath, file.buffer)
 
-    const fileUrl = `/static/image/${fileName}`
+      const fileUrl = `/static/image/${fileName}`
 
-    ctx.body = {
-      success: true,
-      message: 'File uploaded successfully',
-      url: fileUrl,
-    }
+      ctx.body = {
+        success: true,
+        message: 'File uploaded successfully',
+        data: { url: fileUrl },
+      }
+    })
   })
 
   app.use(bodyParser())

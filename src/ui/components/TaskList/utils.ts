@@ -31,10 +31,33 @@ export const highlightElement = (selector: string) => {
 
 export const screenshotElement = async (element: HTMLElement): Promise<string> => {
   try {
-    const blob = await snapdom.toBlob(element, {
-      quality: 0.9,
+    const canvas = await snapdom.toCanvas(element, {
+      quality: 1,
       dpr: window.devicePixelRatio || 1,
     })
+
+    const mime = 'image/png'
+    const quality = 0.92
+
+    const blob = (await new Promise((resolve) => {
+      if (canvas.toBlob) {
+        canvas.toBlob(
+          (b) => {
+            if (b instanceof Blob) resolve(b)
+          },
+          mime,
+          quality,
+        )
+      } else {
+        const dataURL = canvas.toDataURL(mime, quality)
+        const [, base64] = dataURL.split(',')
+        const binary = atob(base64)
+        const array = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i)
+        resolve(new Blob([array], { type: mime }))
+      }
+    })) as Blob
+
     return uploadImage(blob)
   } catch {
     return ''
