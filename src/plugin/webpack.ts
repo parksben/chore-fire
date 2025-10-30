@@ -1,76 +1,49 @@
-import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { ClientRequest, IncomingMessage } from 'node:http'
+import type { Compiler, Module } from 'webpack'
 import { rewriteHtml } from './common/rewriteHtml'
 
-export interface ProxyRequest {
-  setHeader: (name: string, value: string) => void
-  getHeader: (name: string) => string | undefined
-  removeHeader: (name: string) => void
-}
-
-export interface ProxyResponse {
-  headers: { [key: string]: string | string[] | undefined }
-}
-
-export interface WebpackProxyConfig {
-  target: string
-  changeOrigin?: boolean
-  pathRewrite?: { [key: string]: string }
-  on?: {
-    proxyReq?: (proxyReq: ProxyRequest, req: IncomingMessage, res: ServerResponse) => void
-    proxyRes?: (proxyRes: ProxyResponse, req: IncomingMessage, res: ServerResponse) => void
-  }
-}
-
-export interface WebpackCompiler {
-  options: {
-    mode?: string
-    devServer?: {
-      proxy?: { [key: string]: WebpackProxyConfig | string }
-    }
-  }
-  hooks: {
-    compilation: {
-      tap: (name: string, callback: (compilation: WebpackCompilation) => void) => void
-    }
-    environment: {
-      tap: (name: string, callback: () => void) => void
-    }
-  }
-}
-
-export interface WebpackModule {
+type WebpackModule = Module & {
   resource?: string
-  originalSource?: () => { source: () => string }
-  _source?: { _value: string }
+  originalSource?: () => { source: () => string | Buffer }
+  _source?: { _value: string | Buffer }
 }
 
-export interface WebpackCompilation {
-  hooks: {
-    optimizeModules: {
-      tapPromise: (name: string, callback: (modules: WebpackModule[]) => Promise<void>) => void
+type ProxyConfigMap = Record<
+  string,
+  | string
+  | {
+      target: string
+      changeOrigin?: boolean
+      pathRewrite?: Record<string, string>
+      on?: {
+        proxyReq?: (proxyReq: ClientRequest, req: IncomingMessage) => void
+        proxyRes?: (proxyRes: IncomingMessage, req: IncomingMessage) => void
+      }
     }
-  }
-}
+>
 
 export default class ChoreFireWebpackPlugin {
-  apply(compiler: WebpackCompiler): void {
+  apply(compiler: Compiler): void {
     const isDevelopment = compiler.options.mode === 'development' || compiler.options.devServer
     if (!isDevelopment) {
       return
     }
 
-    compiler.hooks.compilation.tap('ChoreFireWebpackPlugin', (compilation: WebpackCompilation) => {
-      compilation.hooks.optimizeModules.tapPromise(
+    compiler.hooks.compilation.tap('ChoreFireWebpackPlugin', (compilation) => {
+      compilation.hooks.optimizeModules.tap(
         'ChoreFireWebpackPlugin',
-        async (modules: WebpackModule[]) => {
+        (modules: Iterable<Module>) => {
           try {
             for (const module of modules) {
-              if ((module.resource || '').endsWith('.html')) {
-                const originalSource = module.originalSource?.()?.source()
+              const webpackModule = module as WebpackModule
+              if ((webpackModule.resource || '').endsWith('.html')) {
+                const originalSource = webpackModule.originalSource?.()?.source()
                 if (originalSource) {
-                  const transformed = rewriteHtml(originalSource)
-                  if (transformed && module._source) {
-                    module._source._value = transformed
+                  const sourceString =
+                    typeof originalSource === 'string' ? originalSource : originalSource.toString()
+                  const transformed = rewriteHtml(sourceString)
+                  if (transformed && webpackModule._source) {
+                    webpackModule._source._value = transformed
                   }
                 }
               }
@@ -90,9 +63,7 @@ export default class ChoreFireWebpackPlugin {
         compiler.options.devServer.proxy = {}
       }
 
-      const proxy = compiler.options.devServer.proxy as {
-        [key: string]: WebpackProxyConfig | string
-      }
+      const proxy = compiler.options.devServer.proxy as ProxyConfigMap
 
       try {
         const { HTTP_SERVER_PORT } = require('../server/runtime.json')
@@ -102,12 +73,12 @@ export default class ChoreFireWebpackPlugin {
             changeOrigin: true,
             pathRewrite: { '^/chore-fire': '' },
             on: {
-              proxyReq: (proxyReq, req) => {
+              proxyReq: (proxyReq: ClientRequest, req: IncomingMessage) => {
                 if (req.url?.startsWith('/chore-fire/sse')) {
                   proxyReq.setHeader('accept-encoding', 'identity')
                 }
               },
-              proxyRes: (proxyRes, req) => {
+              proxyRes: (proxyRes: IncomingMessage, req: IncomingMessage) => {
                 if (req.url?.startsWith('/chore-fire/sse')) {
                   delete proxyRes.headers['content-encoding']
                 }
