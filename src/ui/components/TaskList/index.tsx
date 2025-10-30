@@ -1,8 +1,14 @@
 /** biome-ignore-all lint/a11y/noStaticElementInteractions: make div clickable */
 /** biome-ignore-all lint/a11y/useKeyWithClickEvents: make div clickable */
 import {
+  ArrowDown,
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpToLine,
+  Ban,
   ChevronsDown,
   ChevronsUp,
+  Copy,
   Loader2,
   LocateFixed,
   MousePointer2,
@@ -12,10 +18,10 @@ import {
 import { nanoid } from 'nanoid'
 import { type FC, useCallback, useEffect, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
-import Draggable from '../Draggable'
+import Movable from '../Movable'
 import './style.scss'
 import clsx from 'clsx'
-import { getElementSelector, highlightElement } from './utils'
+import { getElementSelector, highlightElement, screenshotElement } from './utils'
 
 interface TaskListProps {
   data: Task[]
@@ -28,7 +34,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null)
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [promptInput, setPromptInput] = useState('')
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
 
   // handle mouse move
   const handleMouseMove = useCallback(
@@ -59,7 +65,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
 
   // handle click to create task
   const handleClick = useCallback(
-    (e: MouseEvent) => {
+    async (e: MouseEvent) => {
       if (!isSelecting) return
 
       let element = e.target as HTMLElement
@@ -88,7 +94,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
         page_url: window.location.href,
         element_selector: selector,
         element_tag: element.tagName.toLowerCase(),
-        element_html: element.outerHTML.substring(0, 500), // 限制长度
+        element_html: element.outerHTML,
         element_screenshot_base64: '', // 可以后续添加截图功能
         user_prompt: '',
         status: TaskStatus.TODO,
@@ -102,7 +108,6 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
       // add new task and set editing state
       const updatedTasks = [...data, newTask]
       setEditingTaskId(newTaskId)
-      onChange(updatedTasks)
 
       // remove selecting mode class
       document.body.classList.remove('cf-selecting-mode')
@@ -118,6 +123,9 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
           }
         }
       })
+
+      newTask.element_screenshot_base64 = await screenshotElement(element)
+      onChange(updatedTasks)
     },
     [isSelecting, hoveredElement, data, onChange],
   )
@@ -155,6 +163,80 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const deleteTask = useCallback(
     (taskId: string) => {
       const updatedTasks = data.filter((t) => t.id !== taskId)
+      onChange(updatedTasks)
+    },
+    [data, onChange],
+  )
+
+  // duplicate task
+  const duplicateTask = useCallback(
+    (taskId: string) => {
+      const taskIndex = data.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1) return
+
+      const originalTask = data[taskIndex]
+      const newTask: Task = {
+        ...originalTask,
+        id: nanoid(),
+      }
+
+      const updatedTasks = [...data.slice(0, taskIndex + 1), newTask, ...data.slice(taskIndex + 1)]
+      onChange(updatedTasks)
+    },
+    [data, onChange],
+  )
+
+  // move task up
+  const moveTaskUp = useCallback(
+    (taskId: string) => {
+      const taskIndex = data.findIndex((t) => t.id === taskId)
+      if (taskIndex <= 0) return
+
+      const updatedTasks = [...data]
+      const [task] = updatedTasks.splice(taskIndex, 1)
+      updatedTasks.splice(taskIndex - 1, 0, task)
+      onChange(updatedTasks)
+    },
+    [data, onChange],
+  )
+
+  // move task down
+  const moveTaskDown = useCallback(
+    (taskId: string) => {
+      const taskIndex = data.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1 || taskIndex >= data.length - 1) return
+
+      const updatedTasks = [...data]
+      const [task] = updatedTasks.splice(taskIndex, 1)
+      updatedTasks.splice(taskIndex + 1, 0, task)
+      onChange(updatedTasks)
+    },
+    [data, onChange],
+  )
+
+  // move task to top
+  const moveTaskToTop = useCallback(
+    (taskId: string) => {
+      const taskIndex = data.findIndex((t) => t.id === taskId)
+      if (taskIndex <= 0) return
+
+      const updatedTasks = [...data]
+      const [task] = updatedTasks.splice(taskIndex, 1)
+      updatedTasks.unshift(task)
+      onChange(updatedTasks)
+    },
+    [data, onChange],
+  )
+
+  // move task to bottom
+  const moveTaskToBottom = useCallback(
+    (taskId: string) => {
+      const taskIndex = data.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1 || taskIndex >= data.length - 1) return
+
+      const updatedTasks = [...data]
+      const [task] = updatedTasks.splice(taskIndex, 1)
+      updatedTasks.push(task)
       onChange(updatedTasks)
     },
     [data, onChange],
@@ -216,7 +298,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
 
   return (
     <>
-      <Draggable
+      <Movable
         className={clsx('cf-task-draggable', isCollapsed && 'cf-task-draggable-collapsed')}
         ignoreElement={(element) =>
           element.closest('.cf-task-card') instanceof Element ||
@@ -294,8 +376,19 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                     >
                       {isCollapsed ? <ChevronsUp size="1.4em" /> : <ChevronsDown size="1.4em" />}
                     </button>
-                    {isCollapsed ? 'ChoreFire' : 'Tasks'}{' '}
-                    <span className="cf-task-count">{data.length}</span>
+                    {isCollapsed ? 'ChoreFire' : `${data.length} items`}
+                    {!isCollapsed && data.length > 1 && (
+                      <button
+                        type="button"
+                        className="cf-clear-button"
+                        onClick={() => onChange([])}
+                        disabled={isSelecting || editingTaskId !== null}
+                        title="Clear All"
+                      >
+                        <Ban size="1em" />
+                      </button>
+                    )}
+                    {isCollapsed && <span className="cf-task-count">{data.length}</span>}
                   </h3>
                   {isRunning ? (
                     <div className="cf-running-indicator">
@@ -319,7 +412,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
               {!isCollapsed && (
                 <div className="cf-task-scroll-container">
                   <div className="cf-task-items">
-                    {data.map((task, index) => {
+                    {data.map((task) => {
                       const statusClass =
                         task.status === TaskStatus.DOING
                           ? 'cf-task-card-doing'
@@ -334,9 +427,6 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                           key={task.id}
                           data-task-id={task.id}
                           className={`cf-task-card ${statusClass}`}
-                          onClick={() => {
-                            highlightElement(task.element_selector)
-                          }}
                         >
                           <div className="cf-task-card-header">
                             <span className="cf-task-tag">&lt;{task.element_tag}&gt;</span>
@@ -356,17 +446,84 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                                   <LocateFixed size="1.15em" />
                                 </button>
                                 {editingTaskId !== task.id && (
-                                  <button
-                                    type="button"
-                                    className="cf-edit-button"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      startEdit(task)
-                                    }}
-                                    title="Edit"
-                                  >
-                                    <Pencil size="1em" />
-                                  </button>
+                                  <>
+                                    {data.findIndex((t) => t.id === task.id) !== 0 && (
+                                      <button
+                                        type="button"
+                                        className="cf-move-button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          moveTaskToTop(task.id)
+                                        }}
+                                        title="Move to Top"
+                                      >
+                                        <ArrowUpToLine size="1em" />
+                                      </button>
+                                    )}
+                                    {data.findIndex((t) => t.id === task.id) !==
+                                      data.length - 1 && (
+                                      <button
+                                        type="button"
+                                        className="cf-move-button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          moveTaskToBottom(task.id)
+                                        }}
+                                        title="Move to Bottom"
+                                      >
+                                        <ArrowDownToLine size="1em" />
+                                      </button>
+                                    )}
+                                    {data.findIndex((t) => t.id === task.id) !== 0 && (
+                                      <button
+                                        type="button"
+                                        className="cf-move-button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          moveTaskUp(task.id)
+                                        }}
+                                        title="Move Up"
+                                      >
+                                        <ArrowUp size="1em" />
+                                      </button>
+                                    )}
+                                    {data.findIndex((t) => t.id === task.id) !==
+                                      data.length - 1 && (
+                                      <button
+                                        type="button"
+                                        className="cf-move-button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          moveTaskDown(task.id)
+                                        }}
+                                        title="Move Down"
+                                      >
+                                        <ArrowDown size="1em" />
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="cf-edit-button"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        startEdit(task)
+                                      }}
+                                      title="Edit"
+                                    >
+                                      <Pencil size="1em" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="cf-copy-button"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        duplicateTask(task.id)
+                                      }}
+                                      title="Duplicate"
+                                    >
+                                      <Copy size="1em" />
+                                    </button>
+                                  </>
                                 )}
                                 <button
                                   type="button"
@@ -434,7 +591,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
             </div>
           )}
         </div>
-      </Draggable>
+      </Movable>
 
       {/* Selection mode tip */}
       {isSelecting && (

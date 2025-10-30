@@ -3,3 +3,8 @@ node_modules
 cjs
 esm
 dist
+
+# SSL certificates
+localhost-key.pem
+localhost-cert.pem
+.openssl-config.tmp

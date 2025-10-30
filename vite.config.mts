@@ -1,7 +1,9 @@
-import { copyFileSync, mkdirSync, rmSync } from 'node:fs'
+import { copyFileSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import { HTTP_SERVER_PORT } from './cjs/server/runtime.json'
+import { getDevServerProxyConfig } from './src/plugin/vite'
 
 export default defineConfig({
   plugins: [
@@ -53,5 +55,10 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    https: {
+      key: readFileSync(resolve(__dirname, 'localhost-key.pem')),
+      cert: readFileSync(resolve(__dirname, 'localhost-cert.pem')),
+    },
+    proxy: getDevServerProxyConfig(HTTP_SERVER_PORT)
   },
 })

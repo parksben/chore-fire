@@ -215,7 +215,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .cf-empty-header {
   position: absolute;
   top: 0.5em;
-  right: 0.5em;
+  left: 0.5em;
   z-index: 10;
   line-height: 1;
 }
@@ -318,7 +318,6 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transparent 100%
   );
   border-radius: $border-radius-lg $border-radius-lg 0 0;
-  cursor: move;
 
   & > button {
     cursor: pointer;
@@ -360,6 +359,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 9999px;
   transition: $transition-normal;
 
+  .cf-task-container-empty:hover &,
   .cf-task-header:hover & {
     background: rgba(156, 163, 175, 0.5);
   }
@@ -409,6 +409,41 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: rgba(102, 126, 234, 0.2);
   border: none;
   border-radius: 9999px;
+}
+
+.cf-clear-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375em;
+  padding: 0.5em;
+  font-size: 0.8em;
+  font-weight: 500;
+  color: $color-text-gray;
+  background: transparent;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: $transition-normal;
+
+  svg {
+    transition: rotateZ(180deg);
+  }
+
+  &:hover {
+    color: $color-danger;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
+    background: rgba(239, 68, 68, 0.15);
+  }
+
+  &:disabled {
+    color: rgba(156, 163, 175, 0.3);
+    cursor: not-allowed;
+    background: transparent;
+  }
 }
 
 .cf-add-task-button {
@@ -553,7 +588,6 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   );
   border: 1px solid rgba(75, 85, 99, 0.4);
   border-radius: $border-radius-md;
-  cursor: pointer;
   transition: $transition-smooth;
   @include card-shadow;
   text-align: left;
@@ -682,6 +716,14 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     transition: $transition-normal;
     flex-shrink: 0;
+
+    &.cf-move-button {
+      display: none;
+
+      .cf-task-card:hover & {
+        display: flex;
+      }
+    }
   }
 }
 
@@ -693,6 +735,37 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   &:active {
     color: $color-primary;
     transform: scale(0.95);
+  }
+}
+
+.cf-copy-button {
+  &:hover {
+    color: $color-success;
+  }
+
+  &:active {
+    color: $color-success;
+    transform: scale(0.95);
+  }
+}
+
+.cf-move-button {
+  &:hover {
+    color: $color-info;
+  }
+
+  &:active {
+    color: $color-info;
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    color: rgba(156, 163, 175, 0.3);
+    cursor: not-allowed;
+
+    &:hover {
+      color: rgba(156, 163, 175, 0.3);
+    }
   }
 }
 

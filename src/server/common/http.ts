@@ -5,18 +5,44 @@ import bodyParser from 'koa-bodyparser'
 import mount from 'koa-mount'
 import Router from 'koa-router'
 import staticDir from 'koa-static'
-import { getTaskProperties, type Task, TaskStatus, type TaskStore } from './store'
+import { getTaskProperties, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
 
 export interface HttpServerParams {
   store: TaskStore
   http_server_port: string
 }
 
-const TASK_STORE_EVENT_TYPE = ['add', 'update', 'delete', 'status', 'clear'] as const
+const TASK_STORE_EVENT_TYPE = Object.values(TaskActionType)
 
 export function createHttpServer({ store, http_server_port: port }: HttpServerParams): Koa {
   const app = new Koa()
   const router = new Router()
+
+  router.post('/tasks', (ctx: Router.RouterContext) => {
+    const tasksData = ctx.request.body as Partial<Task>[]
+
+    const tasks = tasksData.map((data) => {
+      const newTask: Task = {
+        id: data.id as string,
+        page_url: data.page_url as string,
+        element_selector: data.element_selector as string,
+        element_tag: data.element_tag || '',
+        element_html: data.element_html || '',
+        element_screenshot_base64: data.element_screenshot_base64 || '',
+        user_prompt: data.user_prompt as string,
+        status: data.status || TaskStatus.TODO,
+      }
+      return newTask
+    })
+
+    store.write(tasks)
+    ctx.status = 201
+    ctx.body = {
+      success: true,
+      message: 'Multiple tasks written successfully',
+      data: tasks,
+    }
+  })
 
   router.post('/task', (ctx: Router.RouterContext) => {
     const taskData = ctx.request.body as Partial<Task>

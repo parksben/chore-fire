@@ -7,6 +7,15 @@ export enum TaskStatus {
   CANCEL = 'cancel',
 }
 
+export enum TaskActionType {
+  ADD = 'add',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  STATUS = 'status',
+  WRITE = 'write',
+  CLEAR = 'clear',
+}
+
 export interface Task {
   id: string
   page_url: string
@@ -58,12 +67,12 @@ export class TaskStore {
       index: this.queue.length - 1,
     })
 
-    this.emit('add', task)
+    this.emit(TaskActionType.ADD, task)
   }
 
   delete(taskId: string) {
     this.map.delete(taskId)
-    this.emit('delete', { id: taskId })
+    this.emit(TaskActionType.DELETE, { id: taskId })
   }
 
   get(taskId: string): Task | null {
@@ -76,7 +85,7 @@ export class TaskStore {
     if (task) {
       task.record = { ...task.record, ...rest }
       this.queue[task.index] = task.record
-      this.emit('update', task.record)
+      this.emit(TaskActionType.UPDATE, task.record)
     }
   }
 
@@ -85,7 +94,7 @@ export class TaskStore {
     if (task) {
       task.record = { ...task.record, status }
       this.queue[task.index] = task.record
-      this.emit('status', task.record)
+      this.emit(TaskActionType.STATUS, task.record)
     }
   }
 
@@ -93,10 +102,22 @@ export class TaskStore {
     return Array.from(this.map.values()).map((entry) => entry.record)
   }
 
+  write(tasks: Task[]) {
+    this.queue = [...tasks]
+    this.map.clear()
+    this.queue.forEach((task, index) => {
+      this.map.set(task.id, {
+        record: task,
+        index,
+      })
+    })
+    this.emit(TaskActionType.WRITE, { id: `WRITE-STORE_${nanoid()}` })
+  }
+
   clear() {
     this.queue = []
     this.map.clear()
-    this.emit('clear', { id: `CLEAR-STORE_${nanoid()}` })
+    this.emit(TaskActionType.CLEAR, { id: `CLEAR-STORE_${nanoid()}` })
   }
 
   on(actionType: string, callback: EventHandler) {

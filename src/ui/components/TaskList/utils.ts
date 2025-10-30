@@ -1,4 +1,5 @@
 import { finder as getElementSelector } from '@medv/finder'
+import { snapdom } from '@zumer/snapdom'
 
 export { getElementSelector }
 
@@ -25,5 +26,18 @@ export const highlightElement = (selector: string) => {
     }
   } catch (error) {
     console.error('Failed to highlight element:', error)
+  }
+}
+
+export const screenshotElement = async (element: HTMLElement): Promise<string> => {
+  try {
+    const canvas = await snapdom.toCanvas(element, {
+      quality: 1,
+      dpr: window.devicePixelRatio || 1,
+    })
+    const dataUrl = canvas.toDataURL('image/png')
+    return dataUrl
+  } catch {
+    return ''
   }
 }

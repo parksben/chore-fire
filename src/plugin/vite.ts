@@ -1,82 +1,32 @@
-import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { ClientRequest, IncomingMessage } from 'node:http'
+import type { Plugin, ProxyOptions, UserConfig } from 'vite'
 import { rewriteHtml } from './common/rewriteHtml'
 
 export type CommandType = 'serve' | 'build'
 
-export interface ProxyRequest {
-  setHeader: (name: string, value: string) => void
-  getHeader: (name: string) => string | undefined
-  removeHeader: (name: string) => void
-}
+export const getDevServerProxyConfig = (
+  port: string | number,
+): Record<string, string | ProxyOptions> => ({
+  '/chore-fire': {
+    target: `http://localhost:${port}`,
+    changeOrigin: true,
+    rewrite: (path: string) => path.replace(/^\/chore-fire/, ''),
+    configure: (proxy) => {
+      proxy.on('proxyReq', (proxyReq: ClientRequest, req: IncomingMessage) => {
+        if (req.url?.startsWith('/chore-fire/sse')) {
+          proxyReq.setHeader('accept-encoding', 'identity')
+        }
+      })
+      proxy.on('proxyRes', (proxyRes: IncomingMessage, req: IncomingMessage) => {
+        if (req.url?.startsWith('/chore-fire/sse')) {
+          delete proxyRes.headers['content-encoding']
+        }
+      })
+    },
+  },
+})
 
-export interface ProxyResponse {
-  headers: { [key: string]: string | string[] | undefined }
-}
-
-export interface ProxyServer {
-  on(
-    event: 'proxyReq',
-    listener: (proxyReq: ProxyRequest, req: IncomingMessage, res: ServerResponse) => void,
-  ): void
-  on(
-    event: 'proxyRes',
-    listener: (proxyRes: ProxyResponse, req: IncomingMessage, res: ServerResponse) => void,
-  ): void
-  on(
-    event: 'error',
-    listener: (err: Error, req: IncomingMessage, res: ServerResponse) => void,
-  ): void
-  on(event: 'open' | 'close', listener: (...args: unknown[]) => void): void
-  off(
-    event: 'proxyReq',
-    listener: (proxyReq: ProxyRequest, req: IncomingMessage, res: ServerResponse) => void,
-  ): void
-  off(
-    event: 'proxyRes',
-    listener: (proxyRes: ProxyResponse, req: IncomingMessage, res: ServerResponse) => void,
-  ): void
-  off(
-    event: 'error',
-    listener: (err: Error, req: IncomingMessage, res: ServerResponse) => void,
-  ): void
-  off(event: 'open' | 'close', listener: (...args: unknown[]) => void): void
-}
-
-export interface ProxyOptions {
-  target: string
-  changeOrigin?: boolean
-  rewrite?: (path: string) => string
-  configure?: (proxy: ProxyServer, options: ProxyOptions) => void
-  ws?: boolean
-  secure?: boolean
-  headers?: Record<string, string>
-  timeout?: number
-  proxyTimeout?: number
-  followRedirects?: boolean
-  selfHandleResponse?: boolean
-}
-
-export interface ViteConfig {
-  command: CommandType
-  server?: {
-    proxy?: {
-      [key: string]: string | ProxyOptions
-    }
-  }
-}
-
-export interface VitePlugin {
-  name: string
-  enforce?: 'pre' | 'post'
-  apply?: CommandType | ((config: ViteConfig) => boolean)
-  transformIndexHtml?: {
-    order?: 'pre' | 'post'
-    handler: (html: string, ctx: { path: string }) => string | Promise<string>
-  }
-  config?: (config: ViteConfig, options: { command: CommandType }) => void
-}
-
-export default function ChoreFireVitePlugin(): VitePlugin {
+export default function ChoreFireVitePlugin(): Plugin {
   return {
     name: 'chore-fire-vite-plugin',
     enforce: 'pre',
@@ -84,12 +34,12 @@ export default function ChoreFireVitePlugin(): VitePlugin {
 
     transformIndexHtml: {
       order: 'pre',
-      handler(html) {
+      handler(html: string) {
         return rewriteHtml(html)
       },
     },
 
-    config(config) {
+    config(config: UserConfig) {
       if (!config.server) config.server = {}
       if (!config.server.proxy) config.server.proxy = {}
 
@@ -98,23 +48,7 @@ export default function ChoreFireVitePlugin(): VitePlugin {
       try {
         const { HTTP_SERVER_PORT } = require('../server/runtime.json')
         if (HTTP_SERVER_PORT) {
-          proxy['/chore-fire'] = {
-            target: `http://localhost:${HTTP_SERVER_PORT}`,
-            changeOrigin: true,
-            rewrite: (path: string) => path.replace(/^\/chore-fire/, ''),
-            configure: (proxy: ProxyServer) => {
-              proxy.on('proxyReq', (proxyReq: ProxyRequest, req: IncomingMessage) => {
-                if (req.url?.startsWith('/chore-fire/sse')) {
-                  proxyReq.setHeader('accept-encoding', 'identity')
-                }
-              })
-              proxy.on('proxyRes', (proxyRes: ProxyResponse, req: IncomingMessage) => {
-                if (req.url?.startsWith('/chore-fire/sse')) {
-                  delete proxyRes.headers['content-encoding']
-                }
-              })
-            },
-          }
+          Object.assign(proxy, getDevServerProxyConfig(HTTP_SERVER_PORT))
         }
       } catch {
         console.warn('[ChoreFireVitePlugin] Failed to load runtime config')
