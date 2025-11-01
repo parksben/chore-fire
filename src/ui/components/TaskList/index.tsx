@@ -1,10 +1,9 @@
+import clsx from 'clsx'
 import { BrushCleaning, ChevronsDown, ChevronsUp, Loader2, MousePointer2 } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { type FC, useCallback, useEffect, useRef, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
 import Movable, { MovableApi } from '../Movable'
-import './style.scss'
-import clsx from 'clsx'
 import TaskItem from './TaskItem'
 import { getElementSelector } from './utils'
 
@@ -20,9 +19,13 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [isScrolledToTop, setIsScrolledToTop] = useState(true)
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false)
+  const [editingTasks, setEditingTasks] = useState<Set<string>>(new Set())
 
   const movableApi = useRef<MovableApi | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+
+  // check if any task is editing
+  const hasEditingTask = editingTasks.size > 0
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: adjust position on collapse change
   useEffect(() => {
@@ -201,6 +204,11 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     (taskId: string) => {
       const updatedTasks = data.filter((t) => t.id !== taskId)
       onChange(updatedTasks)
+      setEditingTasks((prev) => {
+        const next = new Set(prev)
+        next.delete(taskId)
+        return next
+      })
     },
     [data, onChange],
   )
@@ -299,6 +307,19 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     [data, onChange],
   )
 
+  // handle task editing state change
+  const handleEditingChange = useCallback((taskId: string, isEditing: boolean) => {
+    setEditingTasks((prev) => {
+      const next = new Set(prev)
+      if (isEditing) {
+        next.add(taskId)
+      } else {
+        next.delete(taskId)
+      }
+      return next
+    })
+  }, [])
+
   // setup event listeners during selecting
   useEffect(() => {
     if (isSelecting) {
@@ -347,7 +368,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                     <div className="cf-drag-indicator"></div>
                   </div>
                   <div className="cf-task-header-content">
-                    <h3 className="cf-task-header-title">
+                    <div className="cf-task-header-title">
                       <button
                         type="button"
                         className="cf-toggle-button"
@@ -357,7 +378,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                         <ChevronsUp size="1.4em" />
                       </button>
                       ChoreFire
-                    </h3>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -377,7 +398,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                   </div>
                   <div className="cf-empty-content">
                     <div className="cf-empty-icon">🔥</div>
-                    <h3 className="cf-empty-title">ChoreFire</h3>
+                    <div className="cf-empty-title">ChoreFire</div>
                     <p className="cf-empty-description">Click to start your jobs</p>
                     <button type="button" className="cf-start-button" onClick={startSelecting}>
                       <MousePointer2 size="1.2em" />
@@ -394,7 +415,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                   <div className="cf-drag-indicator"></div>
                 </div>
                 <div className="cf-task-header-content">
-                  <h3 className="cf-task-header-title">
+                  <div className="cf-task-header-title">
                     <button
                       type="button"
                       className="cf-toggle-button"
@@ -404,7 +425,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                       {isCollapsed ? <ChevronsUp size="1.4em" /> : <ChevronsDown size="1.4em" />}
                     </button>
                     {isCollapsed ? 'ChoreFire' : `${data.length} items`}
-                    {!isRunning && !isCollapsed && data.length > 1 && (
+                    {!isRunning && !isCollapsed && data.length > 0 && (
                       <button
                         type="button"
                         className="cf-clear-button"
@@ -418,7 +439,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                     {!isRunning && isCollapsed && (
                       <span className="cf-task-count">{data.length}</span>
                     )}
-                  </h3>
+                  </div>
                   {isRunning ? (
                     <div className="cf-running-indicator">
                       <Loader2 size="1em" className="cf-spinner" />
@@ -440,7 +461,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                       type="button"
                       className="cf-add-task-button"
                       onClick={startSelecting}
-                      disabled={isSelecting}
+                      disabled={isSelecting || hasEditingTask}
                     >
                       <MousePointer2 size="1em" />
                       <span>Inspect</span>
@@ -469,6 +490,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                           onMoveToBottom={moveTaskToBottom}
                           onUpdatePrompt={updateTaskPrompt}
                           onUpdatePromptAndScreenshot={updateTaskPromptAndScreenshot}
+                          onEditingChange={handleEditingChange}
                         />
                       ))}
                     </div>

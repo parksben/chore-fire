@@ -137,6 +137,17 @@ export default function Movable({
   }, [getApi, reset, revert, adjust])
 
   useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    // Get the root element for event listeners (either document or shadow root)
+    const getRootNode = (element: HTMLElement): Document | ShadowRoot => {
+      const root = element.getRootNode()
+      return root instanceof ShadowRoot ? root : document
+    }
+
+    const rootNode = getRootNode(container)
+
     const handleMouseDown = (event: MouseEvent) => {
       if (
         containerRef.current instanceof HTMLSpanElement === false ||
@@ -187,12 +198,14 @@ export default function Movable({
       lastPosition.translateY = dragInfo.translateY
     }
 
-    document.addEventListener('mousedown', handleMouseDown)
+    // Listen on the appropriate root node (document or shadow root)
+    rootNode.addEventListener('mousedown', handleMouseDown as EventListener)
+    // mousemove and mouseup should always be on document for proper tracking
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
 
     return () => {
-      document.removeEventListener('mousedown', handleMouseDown)
+      rootNode.removeEventListener('mousedown', handleMouseDown as EventListener)
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }

@@ -54,6 +54,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",
     "@medv/finder": "^4.0.2",
+    "@r2wc/react-to-web-component": "^2.1.0",
     "@types/koa": "^3.0.1",
     "@types/koa__multer": "^2.0.8",
     "@types/koa-bodyparser": "^4.3.13",
