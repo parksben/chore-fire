@@ -37,17 +37,25 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     if (doingTaskIndex === -1) return
 
     const doingTask = data[doingTaskIndex]
+
     const container = scrollContainerRef.current
     if (!container) return
 
     // use requestAnimationFrame to ensure DOM is updated
     requestAnimationFrame(() => {
+      // scroll task item into view
       const taskElement = container.querySelector(`[data-task-id="${doingTask.id}"]`)
       if (taskElement instanceof HTMLElement) {
         taskElement.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
         })
+      }
+
+      // scroll page element into view
+      const pageElement = document.querySelector(doingTask.element_selector)
+      if (pageElement instanceof Element) {
+        pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     })
   }, [data, isRunning])

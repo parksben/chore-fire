@@ -666,9 +666,9 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       from 0deg,
       transparent 0deg,
       transparent 60deg,
-      rgba(102, 126, 234, 0.9) 90deg,
+      rgba(102, 126, 234, 0.9) 110deg,
       rgba(118, 75, 162, 1) 120deg,
-      rgba(16, 185, 129, 0.9) 150deg,
+      rgba(16, 185, 129, 0.9) 130deg,
       transparent 180deg,
       transparent 360deg
     );
@@ -686,6 +686,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       rgba(17, 24, 39, 0.95) 100%
     );
     border-radius: calc(#{$border-radius-md} - 1px);
+    backdrop-filter: blur(12px);
     z-index: 1;
   }
 

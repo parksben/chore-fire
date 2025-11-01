@@ -12,8 +12,8 @@ const App: FC = () => {
         <section className="hero-section">
           <div className="hero-content">
             <div className="hero-icon">🔥</div>
-            <h1 className="hero-title">Chore Fire</h1>
-            <p className="hero-subtitle">强大的任务管理工具，让你的工作流程如火焰般高效燃烧</p>
+            <h1 className="hero-title">ChoreFire</h1>
+            <p className="hero-subtitle">在网页中标注要调整的内容，一键提交给编码助手进行处理</p>
             <div className="hero-badges">
               <span className="badge">⚡ 高性能</span>
               <span className="badge">🎨 美观设计</span>
@@ -119,7 +119,7 @@ const App: FC = () => {
 
         {/* Footer */}
         <footer className="app-footer">
-          <p>🔥 Chore Fire - 让效率如火焰般燃烧</p>
+          <p>ChoreFire - 助力本地 Agent 实现 Vibe Coding 能力</p>
           <p className="footer-links">
             <a href="#docs">📚 文档</a>
             <span className="separator">•</span>

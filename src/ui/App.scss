@@ -31,7 +31,9 @@ p {
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: 
+    linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%),
+    url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1920&q=80') center center / cover no-repeat;
   color: white;
   padding: 4rem 2rem;
   text-align: center;
@@ -166,35 +168,101 @@ p {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
+  gap: 2.5rem;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 1rem 0;
 }
 
 .stat-card {
+  position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
-  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  border-radius: 1.5rem;
   text-align: center;
   color: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3), 
+              0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255, 255, 255, 0.2), 
+      transparent);
+    transition: left 0.5s ease;
+  }
+  
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+.stat-card:nth-child(1) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3), 
+              0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:nth-child(2) {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3), 
+              0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:nth-child(3) {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3), 
+              0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:nth-child(4) {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  box-shadow: 0 10px 30px rgba(67, 233, 123, 0.3), 
+              0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4), 
+              0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card:nth-child(2):hover {
+  box-shadow: 0 20px 40px rgba(240, 147, 251, 0.4), 
+              0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card:nth-child(3):hover {
+  box-shadow: 0 20px 40px rgba(79, 172, 254, 0.4), 
+              0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card:nth-child(4):hover {
+  box-shadow: 0 20px 40px rgba(67, 233, 123, 0.4), 
+              0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .stat-value {
-  font-size: 3rem;
-  font-weight: 800;
+  font-size: 3.5rem;
+  font-weight: 900;
   margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
   font-size: 1.1rem;
-  opacity: 0.9;
+  opacity: 0.95;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 /* Tips Section */

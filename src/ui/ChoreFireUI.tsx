@@ -22,6 +22,9 @@ export default function ChoreFireUI() {
       .getItem<Task[]>(STORAGE_KEY)
       .then((storedTasks) => {
         const localList = storedTasks || []
+        if (localList.some((task) => task.status !== TaskStatus.TODO)) {
+          setRunning(true)
+        }
         setData(localList)
       })
       .finally(() => {
@@ -34,9 +37,7 @@ export default function ChoreFireUI() {
     if (!isReady.current) return
 
     // save to localforage
-    localforage.setItem(STORAGE_KEY, data).catch((error) => {
-      console.error('[ChoreFire] Failed to save tasks to localforage:', error)
-    })
+    localforage.setItem(STORAGE_KEY, data)
 
     // save to server
     fetch('/chore-fire/tasks', {
@@ -61,14 +62,16 @@ export default function ChoreFireUI() {
       }
 
       if (action === TaskActionType.STATUS) {
-        setData((prev) =>
-          prev.map((task) => {
+        setData((prev) => {
+          const nextList = prev.map((task) => {
             if (task.id === data.id && data.status) {
               return { ...task, status: data.status }
             }
             return task
-          }),
-        )
+          })
+          localforage.setItem(STORAGE_KEY, nextList)
+          return nextList
+        })
         if (data.status !== TaskStatus.TODO) {
           setRunning(true)
         }
@@ -77,6 +80,7 @@ export default function ChoreFireUI() {
 
       if (action === TaskActionType.CLEAR) {
         setData([])
+        localforage.removeItem(STORAGE_KEY)
         setRunning(false)
         return
       }
