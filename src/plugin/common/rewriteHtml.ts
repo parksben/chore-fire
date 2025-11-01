@@ -16,5 +16,7 @@ export function rewriteHtml(html: string, forUIDevelopment = false): string {
     ? ''
     : `<link rel="stylesheet" href="${FE_SDK_CSS_URL}">`
 
-  return html.replace('</head>', `${constScript}${sdkScript}${sdkCss}</head>`)
+  return html
+    .replace('</head>', `${constScript}${sdkScript}${sdkCss}</head>`)
+    .replace('</body>', `<chore-fire-ui></chore-fire-ui></body>`)
 }

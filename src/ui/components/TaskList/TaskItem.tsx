@@ -26,6 +26,7 @@ interface TaskItemProps {
   onMoveToBottom: (taskId: string) => void
   onUpdatePrompt: (taskId: string, prompt: string) => void
   onUpdatePromptAndScreenshot: (taskId: string, prompt: string, screenshot: string) => void
+  onEditingChange?: (taskId: string, isEditing: boolean) => void
 }
 
 const TaskItem: FC<TaskItemProps> = ({
@@ -41,11 +42,17 @@ const TaskItem: FC<TaskItemProps> = ({
   onMoveToBottom,
   onUpdatePrompt,
   onUpdatePromptAndScreenshot,
+  onEditingChange,
 }) => {
   // if no prompt, start in editing mode
   const [isEditing, setIsEditing] = useState(!task.user_prompt)
   const [promptInput, setPromptInput] = useState(task.user_prompt)
   const [isSaving, setIsSaving] = useState(false)
+
+  // notify parent when editing state changes
+  useEffect(() => {
+    onEditingChange?.(task.id, isEditing)
+  }, [task.id, isEditing, onEditingChange])
 
   // focus textarea when new task created
   useEffect(() => {

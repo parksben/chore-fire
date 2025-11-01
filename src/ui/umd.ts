@@ -1,29 +1,19 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App'
+import r2wc from '@r2wc/react-to-web-component'
+import ChoreFireUI from './ChoreFireUI'
+// @ts-expect-error
+import cssText from './components/TaskList/internal.scss?inline'
+import './components/TaskList/external.scss'
 
-// 样式隔离的渲染函数
-export const renderApp = (container: HTMLElement) => {
-  // 确保容器具有样式隔离类名
-  if (!container.classList.contains('chore-fire-ui')) {
-    container.classList.add('chore-fire-ui')
-  }
+const WEB_COMPONENT_TAG_NAME = 'chore-fire-ui'
 
-  const root = createRoot(container)
-  root.render(React.createElement(App))
-  return root
+const WebChoreFireUI = r2wc(ChoreFireUI, { shadow: 'open' })
+const proto = WebChoreFireUI.prototype
+const origConnected = proto.connectedCallback
+proto.connectedCallback = function () {
+  origConnected?.call(this)
+  const sheet = new CSSStyleSheet()
+  sheet.replaceSync(cssText)
+  // biome-ignore lint/suspicious/noExplicitAny: shadowRoot type
+  ;(this.shadowRoot as any).adoptedStyleSheets = [sheet]
 }
-
-// UMD 模块导出
-export { React, createRoot, App }
-
-// 全局挂载（可选）
-if (typeof window !== 'undefined') {
-  // biome-ignore lint/suspicious/noExplicitAny: UMD 模块需要挂载到全局对象
-  ;(window as any).ChoreFireUI = {
-    React,
-    createRoot,
-    App,
-    renderApp,
-  }
-}
+customElements.define(WEB_COMPONENT_TAG_NAME, WebChoreFireUI)
