@@ -1,11 +1,11 @@
 import type { FC } from 'react'
 import './App.scss'
-import Controller from './components/Controller'
+import ChoreFireUI from './ChoreFireUI'
 
 const App: FC = () => {
   return (
     <>
-      <Controller />
+      <ChoreFireUI />
 
       <div className="app-container">
         {/* Hero Section */}

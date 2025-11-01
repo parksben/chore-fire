@@ -4,10 +4,21 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { HTTP_SERVER_PORT } from './cjs/server/runtime.json'
 import { getDevServerProxyConfig } from './src/plugin/vite'
+import { rewriteHtml } from './src/plugin/common/rewriteHtml'
 
 export default defineConfig({
   plugins: [
     react(),
+    {
+      name: 'rewrite-html',
+      apply: 'serve',
+      transformIndexHtml: {
+        order: 'pre',
+        handler(html: string) {
+          return rewriteHtml(html, true)
+        },
+      },
+    },
     {
       name: 'copy-umd-files',
       writeBundle() {

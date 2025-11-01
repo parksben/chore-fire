@@ -1,25 +1,12 @@
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpToLine,
-  BrushCleaning,
-  ChevronsDown,
-  ChevronsUp,
-  Copy,
-  Loader2,
-  LocateFixed,
-  MousePointer2,
-  Pencil,
-  Trash2,
-} from 'lucide-react'
+import { BrushCleaning, ChevronsDown, ChevronsUp, Loader2, MousePointer2 } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { type FC, useCallback, useEffect, useRef, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
 import Movable, { MovableApi } from '../Movable'
 import './style.scss'
 import clsx from 'clsx'
-import { getElementSelector, highlightElement, screenshotElement } from './utils'
+import TaskItem from './TaskItem'
+import { getElementSelector } from './utils'
 
 interface TaskListProps {
   data: Task[]
@@ -30,16 +17,68 @@ interface TaskListProps {
 const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const [isSelecting, setIsSelecting] = useState(false)
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null)
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
-  const [promptInput, setPromptInput] = useState('')
   const [isCollapsed, setIsCollapsed] = useState(true)
+  const [isScrolledToTop, setIsScrolledToTop] = useState(true)
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false)
 
   const movableApi = useRef<MovableApi | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: adjust position on collapse change
   useEffect(() => {
     movableApi.current?.adjust()
   }, [isCollapsed])
+
+  // scroll to DOING task when data changes
+  useEffect(() => {
+    if (!isRunning) return
+
+    const doingTaskIndex = data.findIndex((t) => t.status === TaskStatus.DOING)
+    if (doingTaskIndex === -1) return
+
+    const doingTask = data[doingTaskIndex]
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    // use requestAnimationFrame to ensure DOM is updated
+    requestAnimationFrame(() => {
+      const taskElement = container.querySelector(`[data-task-id="${doingTask.id}"]`)
+      if (taskElement instanceof HTMLElement) {
+        taskElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
+      }
+    })
+  }, [data, isRunning])
+
+  // check scroll position
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to re-check scroll position when data changes
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const threshold = 5 // allowable threshold
+
+      // check if at top
+      const isAtTop = scrollTop <= threshold
+      setIsScrolledToTop(isAtTop)
+
+      // check if at bottom
+      const isAtBottom = scrollHeight - scrollTop - clientHeight <= threshold
+      setIsScrolledToBottom(isAtBottom)
+    }
+
+    // initial check
+    handleScroll()
+
+    container.addEventListener('scroll', handleScroll)
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+    }
+  }, [data.length, isCollapsed])
 
   // handle mouse move
   const handleMouseMove = useCallback(
@@ -70,7 +109,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
 
   // handle click to create task
   const handleClick = useCallback(
-    async (e: MouseEvent) => {
+    (e: MouseEvent) => {
       if (!isSelecting) return
 
       let element = e.target as HTMLElement
@@ -100,7 +139,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
         element_selector: selector,
         element_tag: element.tagName.toLowerCase(),
         element_html: element.outerHTML,
-        element_screenshot: '', // 可以后续添加截图功能
+        element_screenshot: '', // screenshot will be taken when saving the prompt first time
         user_prompt: '',
         status: TaskStatus.TODO,
       }
@@ -110,27 +149,12 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
       setHoveredElement(null)
       setIsSelecting(false)
 
-      // add new task and set editing state
+      // add new task
       const updatedTasks = [...data, newTask]
-      setEditingTaskId(newTaskId)
+      onChange(updatedTasks)
 
       // remove selecting mode class
       document.body.classList.remove('cf-selecting-mode')
-
-      // scroll to and focus the new task card
-      requestAnimationFrame(() => {
-        const taskCard = document.querySelector(`.cf-task-card[data-task-id="${newTaskId}"]`)
-        if (taskCard) {
-          taskCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          const textarea = taskCard.querySelector(`.cf-task-textarea`)
-          if (textarea instanceof HTMLTextAreaElement) {
-            textarea.focus()
-          }
-        }
-      })
-
-      newTask.element_screenshot = await screenshotElement(element)
-      onChange(updatedTasks)
     },
     [isSelecting, hoveredElement, data, onChange],
   )
@@ -256,29 +280,16 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     [data, onChange],
   )
 
-  // save edit
-  const saveEdit = useCallback(() => {
-    if (editingTaskId) {
-      updateTaskPrompt(editingTaskId, promptInput)
-      setEditingTaskId(null)
-      setPromptInput('')
-    }
-  }, [editingTaskId, promptInput, updateTaskPrompt])
-
-  // start edit
-  const startEdit = useCallback((task: Task) => {
-    setEditingTaskId(task.id)
-    setPromptInput(task.user_prompt)
-
-    // focus textarea
-    requestAnimationFrame(() => {
-      const textarea = document.querySelector(`[data-task-id="${task.id}"] .cf-task-textarea`)
-      if (textarea instanceof HTMLTextAreaElement) {
-        textarea.focus()
-        textarea.setSelectionRange(0, textarea.value.length)
-      }
-    })
-  }, [])
+  // update task prompt and screenshot together
+  const updateTaskPromptAndScreenshot = useCallback(
+    (taskId: string, prompt: string, screenshot: string) => {
+      const updatedTasks = data.map((t) =>
+        t.id === taskId ? { ...t, user_prompt: prompt, element_screenshot: screenshot } : t,
+      )
+      onChange(updatedTasks)
+    },
+    [data, onChange],
+  )
 
   // setup event listeners during selecting
   useEffect(() => {
@@ -385,30 +396,43 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                       {isCollapsed ? <ChevronsUp size="1.4em" /> : <ChevronsDown size="1.4em" />}
                     </button>
                     {isCollapsed ? 'ChoreFire' : `${data.length} items`}
-                    {!isCollapsed && data.length > 1 && (
+                    {!isRunning && !isCollapsed && data.length > 1 && (
                       <button
                         type="button"
                         className="cf-clear-button"
                         onClick={() => onChange([])}
-                        disabled={isSelecting || editingTaskId !== null}
+                        disabled={isSelecting}
                         title="Clean"
                       >
                         <BrushCleaning size="1.25em" />
                       </button>
                     )}
-                    {isCollapsed && <span className="cf-task-count">{data.length}</span>}
+                    {!isRunning && isCollapsed && (
+                      <span className="cf-task-count">{data.length}</span>
+                    )}
                   </h3>
                   {isRunning ? (
                     <div className="cf-running-indicator">
                       <Loader2 size="1em" className="cf-spinner" />
-                      <span>Running</span>
+                      <span>
+                        Running{' '}
+                        {
+                          data.filter(
+                            (t) =>
+                              t.status === TaskStatus.DONE ||
+                              t.status === TaskStatus.CANCEL ||
+                              t.status === TaskStatus.DOING,
+                          ).length
+                        }
+                        /{data.length}
+                      </span>
                     </div>
                   ) : !isCollapsed ? (
                     <button
                       type="button"
                       className="cf-add-task-button"
                       onClick={startSelecting}
-                      disabled={isSelecting || editingTaskId !== null}
+                      disabled={isSelecting}
                     >
                       <MousePointer2 size="1em" />
                       <span>Inspect</span>
@@ -418,186 +442,30 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
               </div>
 
               {!isCollapsed && (
-                <div className="cf-task-scroll-container">
-                  <div className="cf-task-items">
-                    {data.map((task) => {
-                      const statusClass =
-                        task.status === TaskStatus.DOING
-                          ? 'cf-task-card-doing'
-                          : task.status === TaskStatus.DONE
-                            ? 'cf-task-card-done'
-                            : task.status === TaskStatus.CANCEL
-                              ? 'cf-task-card-cancel'
-                              : 'cf-task-card-todo'
-
-                      return (
-                        <div
+                <div className="cf-task-list-wrapper">
+                  {!isScrolledToTop && <div className="cf-scroll-fade-mask-top" />}
+                  <div ref={scrollContainerRef} className="cf-task-scroll-container">
+                    <div className="cf-task-items">
+                      {data.map((task, index) => (
+                        <TaskItem
                           key={task.id}
-                          data-task-id={task.id}
-                          className={`cf-task-card ${statusClass}`}
-                        >
-                          <div className="cf-task-card-header">
-                            <span className="cf-task-tag">&lt;{task.element_tag}&gt;</span>
-                            <div className="cf-task-selector" title={task.element_selector}>
-                              {task.element_selector}
-                            </div>
-                            {!isRunning && (
-                              <div className="cf-task-actions">
-                                {editingTaskId !== task.id && (
-                                  <>
-                                    {data.findIndex((t) => t.id === task.id) !== 0 && (
-                                      <button
-                                        type="button"
-                                        className="cf-move-button"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          moveTaskToTop(task.id)
-                                        }}
-                                        title="Move to Top"
-                                      >
-                                        <ArrowUpToLine size="1em" />
-                                      </button>
-                                    )}
-                                    {data.findIndex((t) => t.id === task.id) !==
-                                      data.length - 1 && (
-                                      <button
-                                        type="button"
-                                        className="cf-move-button"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          moveTaskToBottom(task.id)
-                                        }}
-                                        title="Move to Bottom"
-                                      >
-                                        <ArrowDownToLine size="1em" />
-                                      </button>
-                                    )}
-                                    {data.findIndex((t) => t.id === task.id) !== 0 && (
-                                      <button
-                                        type="button"
-                                        className="cf-move-button"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          moveTaskUp(task.id)
-                                        }}
-                                        title="Move Up"
-                                      >
-                                        <ArrowUp size="1em" />
-                                      </button>
-                                    )}
-                                    {data.findIndex((t) => t.id === task.id) !==
-                                      data.length - 1 && (
-                                      <button
-                                        type="button"
-                                        className="cf-move-button"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          moveTaskDown(task.id)
-                                        }}
-                                        title="Move Down"
-                                      >
-                                        <ArrowDown size="1em" />
-                                      </button>
-                                    )}
-                                  </>
-                                )}
-                                <button
-                                  type="button"
-                                  className="cf-locate-button"
-                                  onClick={() => {
-                                    highlightElement(task.element_selector)
-                                  }}
-                                  title="Locate"
-                                >
-                                  <LocateFixed size="1.15em" />
-                                </button>
-                                {editingTaskId !== task.id && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      className="cf-edit-button"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        startEdit(task)
-                                      }}
-                                      title="Edit"
-                                    >
-                                      <Pencil size="1em" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="cf-copy-button"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        duplicateTask(task.id)
-                                      }}
-                                      title="Duplicate"
-                                    >
-                                      <Copy size="1em" />
-                                    </button>
-                                  </>
-                                )}
-                                <button
-                                  type="button"
-                                  className="cf-delete-button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    deleteTask(task.id)
-                                    setEditingTaskId(null)
-                                    setPromptInput('')
-                                  }}
-                                  title="Remove"
-                                >
-                                  <Trash2 size="1em" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-
-                          {editingTaskId === task.id ? (
-                            <div className="cf-task-edit">
-                              <textarea
-                                className="cf-task-textarea"
-                                value={promptInput}
-                                onChange={(e) => setPromptInput(e.target.value)}
-                                placeholder="Describe how to optimize or modify this element..."
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <div className="cf-task-edit-actions">
-                                <button
-                                  type="button"
-                                  className="cf-save-button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    saveEdit()
-                                  }}
-                                  disabled={!promptInput.trim()}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  className="cf-cancel-button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (!promptInput.trim() && !task.user_prompt) {
-                                      deleteTask(task.id)
-                                    }
-                                    setEditingTaskId(null)
-                                    setPromptInput('')
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="cf-task-prompt">{task.user_prompt}</div>
-                          )}
-                        </div>
-                      )
-                    })}
+                          task={task}
+                          taskIndex={index}
+                          totalTasks={data.length}
+                          isRunning={isRunning}
+                          onDelete={deleteTask}
+                          onDuplicate={duplicateTask}
+                          onMoveUp={moveTaskUp}
+                          onMoveDown={moveTaskDown}
+                          onMoveToTop={moveTaskToTop}
+                          onMoveToBottom={moveTaskToBottom}
+                          onUpdatePrompt={updateTaskPrompt}
+                          onUpdatePromptAndScreenshot={updateTaskPromptAndScreenshot}
+                        />
+                      ))}
+                    </div>
                   </div>
+                  {!isScrolledToBottom && <div className="cf-scroll-fade-mask-bottom" />}
                 </div>
               )}
             </div>

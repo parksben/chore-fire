@@ -17,6 +17,7 @@ export interface HttpServerParams {
 
 const TASK_STORE_EVENT_TYPE = Object.values(TaskActionType)
 
+const RUNTIME_JSON_PATH = path.join(__dirname, '../runtime.json')
 const STATIC_FILE_DIRECTORY = path.join(__dirname, '../../ui')
 const IMAGE_DIRECTORY = path.join(__dirname, '../../ui/image')
 
@@ -168,9 +169,9 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
   })
 
   router.get('/const.js', (ctx: Router.RouterContext) => {
-    const runtime = require('../runtime.json')
+    const runtimeData = fs.readFileSync(RUNTIME_JSON_PATH, 'utf-8')
     ctx.type = 'application/javascript'
-    ctx.body = `window.CHORE_FIRE_RUNTIME_INFO = ${JSON.stringify(runtime)};`
+    ctx.body = `window.CHORE_FIRE_RUNTIME_INFO = ${runtimeData};`
   })
 
   const messageCache: string[] = []
