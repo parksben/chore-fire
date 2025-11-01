@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/a11y/noStaticElementInteractions: make div clickable */
-/** biome-ignore-all lint/a11y/useKeyWithClickEvents: make div clickable */
 import {
   ArrowDown,
   ArrowDownToLine,
@@ -16,9 +14,9 @@ import {
   Trash2,
 } from 'lucide-react'
 import { nanoid } from 'nanoid'
-import { type FC, useCallback, useEffect, useState } from 'react'
+import { type FC, useCallback, useEffect, useRef, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
-import Movable from '../Movable'
+import Movable, { MovableApi } from '../Movable'
 import './style.scss'
 import clsx from 'clsx'
 import { getElementSelector, highlightElement, screenshotElement } from './utils'
@@ -35,6 +33,13 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [promptInput, setPromptInput] = useState('')
   const [isCollapsed, setIsCollapsed] = useState(true)
+
+  const movableApi = useRef<MovableApi | null>(null)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: adjust position on collapse change
+  useEffect(() => {
+    movableApi.current?.adjust()
+  }, [isCollapsed])
 
   // handle mouse move
   const handleMouseMove = useCallback(
@@ -310,6 +315,9 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
           right: '8px',
           bottom: '8px',
         }}
+        getApi={(api) => {
+          movableApi.current = api
+        }}
       >
         <div className="cf-task-list">
           {data.length === 0 ? (
@@ -435,16 +443,6 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                             </div>
                             {!isRunning && (
                               <div className="cf-task-actions">
-                                <button
-                                  type="button"
-                                  className="cf-locate-button"
-                                  onClick={() => {
-                                    highlightElement(task.element_selector)
-                                  }}
-                                  title="Locate"
-                                >
-                                  <LocateFixed size="1.15em" />
-                                </button>
                                 {editingTaskId !== task.id && (
                                   <>
                                     {data.findIndex((t) => t.id === task.id) !== 0 && (
@@ -501,6 +499,20 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                                         <ArrowDown size="1em" />
                                       </button>
                                     )}
+                                  </>
+                                )}
+                                <button
+                                  type="button"
+                                  className="cf-locate-button"
+                                  onClick={() => {
+                                    highlightElement(task.element_selector)
+                                  }}
+                                  title="Locate"
+                                >
+                                  <LocateFixed size="1.15em" />
+                                </button>
+                                {editingTaskId !== task.id && (
+                                  <>
                                     <button
                                       type="button"
                                       className="cf-edit-button"
@@ -548,7 +560,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                                 className="cf-task-textarea"
                                 value={promptInput}
                                 onChange={(e) => setPromptInput(e.target.value)}
-                                placeholder="Describe your requirements..."
+                                placeholder="Describe how to optimize or modify this element..."
                                 onClick={(e) => e.stopPropagation()}
                               />
                               <div className="cf-task-edit-actions">

@@ -11,6 +11,7 @@ import {
 export interface MovableApi {
   reset: () => void
   revert: () => void
+  adjust: () => void
 }
 
 export interface MovableProps {
@@ -18,6 +19,7 @@ export interface MovableProps {
   style?: CSSProperties
   children?: ReactNode | ((api: MovableApi) => ReactNode)
   ignoreElement?: (element: HTMLElement) => boolean
+  getApi?: (api: MovableApi) => void
   safeMargin?: {
     left?: number
     right?: number
@@ -49,6 +51,7 @@ export default function Movable({
   style,
   children,
   ignoreElement,
+  getApi,
   safeMargin: userSafeMargin,
 }: MovableProps) {
   const containerRef = useRef<HTMLSpanElement | null>(null)
@@ -80,6 +83,58 @@ export default function Movable({
       containerRef.current.style.transform = `translate(${dragInfo.translateX}px, ${dragInfo.translateY}px)`
     }
   }, [])
+
+  const adjust = useCallback(() => {
+    const { lastPosition, dragInfo } = cacheRef.current
+
+    if (containerRef.current instanceof HTMLSpanElement) {
+      const layoutParent =
+        containerRef.current.style.position === 'fixed'
+          ? window
+          : containerRef.current.parentElement
+      if (!layoutParent) return
+
+      const parentRect =
+        layoutParent instanceof Window
+          ? {
+              left: 0,
+              top: 0,
+              right: window.innerWidth,
+              bottom: window.innerHeight,
+            }
+          : layoutParent?.getBoundingClientRect()
+      const rect = containerRef.current.getBoundingClientRect()
+
+      const overLeft = parentRect.left + safeMargin.left - rect.left
+      const overRight = rect.right - (parentRect.right - safeMargin.right)
+      const overTop = parentRect.top + safeMargin.top - rect.top
+      const overBottom = rect.bottom - (parentRect.bottom - safeMargin.bottom)
+
+      if (overLeft > 0) {
+        dragInfo.translateX += overLeft
+      }
+      if (overRight > 0) {
+        dragInfo.translateX -= overRight
+      }
+      if (overTop > 0) {
+        dragInfo.translateY += overTop
+      }
+      if (overBottom > 0) {
+        dragInfo.translateY -= overBottom
+      }
+
+      containerRef.current.style.transform = `translate(${dragInfo.translateX}px, ${dragInfo.translateY}px)`
+    }
+
+    lastPosition.translateX = dragInfo.translateX
+    lastPosition.translateY = dragInfo.translateY
+  }, [safeMargin])
+
+  useEffect(() => {
+    if (typeof getApi === 'function') {
+      getApi({ reset, revert, adjust })
+    }
+  }, [getApi, reset, revert, adjust])
 
   useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
@@ -122,34 +177,11 @@ export default function Movable({
     const handleMouseUp = () => {
       setDragging(false)
 
-      const { dragInfo, lastPosition } = cacheRef.current
-
+      const { lastPosition, dragInfo } = cacheRef.current
       dragInfo.isDragging = false
       document.body.style.cursor = dragInfo.defaultCursor
 
-      if (containerRef.current instanceof HTMLSpanElement) {
-        const rect = containerRef.current.getBoundingClientRect()
-
-        const overLeft = safeMargin.left - rect.left
-        const overRight = rect.right - (window.innerWidth - safeMargin.right)
-        const overTop = safeMargin.top - rect.top
-        const overBottom = rect.bottom - (window.innerHeight - safeMargin.bottom)
-
-        if (overLeft > 0) {
-          dragInfo.translateX += overLeft
-        }
-        if (overRight > 0) {
-          dragInfo.translateX -= overRight
-        }
-        if (overTop > 0) {
-          dragInfo.translateY += overTop
-        }
-        if (overBottom > 0) {
-          dragInfo.translateY -= overBottom
-        }
-
-        containerRef.current.style.transform = `translate(${dragInfo.translateX}px, ${dragInfo.translateY}px)`
-      }
+      adjust()
 
       lastPosition.translateX = dragInfo.translateX
       lastPosition.translateY = dragInfo.translateY
@@ -164,7 +196,7 @@ export default function Movable({
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [ignoreElement, safeMargin])
+  }, [ignoreElement, adjust])
 
   return (
     <span
@@ -179,7 +211,7 @@ export default function Movable({
       }}
       ref={containerRef}
     >
-      {typeof children === 'function' ? children({ reset, revert }) : children}
+      {typeof children === 'function' ? children({ reset, revert, adjust }) : children}
     </span>
   )
 }
