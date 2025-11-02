@@ -49,6 +49,7 @@
     "koa-static": "^5.0.0",
     "multer": "^2.0.2",
     "nanoid": "^5.1.6",
+    "sharp": "^0.34.4",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -65,6 +66,7 @@
     "@types/node": "^24.9.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/sharp": "^0.31.1",
     "@types/webpack": "^5.28.5",
     "@vitejs/plugin-react": "^4.3.3",
     "@zumer/snapdom": "^1.9.14",

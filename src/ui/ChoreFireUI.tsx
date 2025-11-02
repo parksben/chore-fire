@@ -36,9 +36,11 @@ export default function ChoreFireUI() {
   useEffect(() => {
     if (!isReady.current) return
 
-    // update running state
     if (data.length === 0) {
+      // update running state
       setRunning(false)
+      // clear images on server when all tasks are cleared
+      fetch('/chore-fire/images', { method: 'DELETE' })
     }
 
     // save to localforage

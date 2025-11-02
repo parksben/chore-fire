@@ -8,6 +8,7 @@ import mount from 'koa-mount'
 import Router from 'koa-router'
 import staticDir from 'koa-static'
 import { nanoid } from 'nanoid'
+import sharp from 'sharp'
 import { type EventPayload, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
 
 export interface HttpServerParams {
@@ -246,7 +247,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
     ctx.body = stream
   })
 
-  router.post('/upload-image', async (ctx: Router.RouterContext) => {
+  router.post('/image', async (ctx: Router.RouterContext) => {
     // biome-ignore lint/suspicious/noExplicitAny: use multer to handle file upload
     await upload.single('file')(ctx as any, async () => {
       // biome-ignore lint/suspicious/noExplicitAny: use multer to handle file upload
@@ -257,20 +258,73 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
         return
       }
 
-      const fileName = `${nanoid()}.png`
-      const filePath = path.join(IMAGE_DIRECTORY, fileName)
+      try {
+        const fileName = `${nanoid()}.png`
+        const filePath = path.join(IMAGE_DIRECTORY, fileName)
 
-      await fs.promises.mkdir(IMAGE_DIRECTORY, { recursive: true })
-      await fs.promises.writeFile(filePath, file.buffer)
+        await fs.promises.mkdir(IMAGE_DIRECTORY, { recursive: true })
 
-      const fileUrl = `/static/image/${fileName}`
+        // convert and compress image using sharp
+        const compressedBuffer = await sharp(file.buffer)
+          .resize(960, null, {
+            // max width 960px, height scaled proportionally
+            fit: 'inside',
+            withoutEnlargement: true, // don't enlarge small images
+          })
+          .png({
+            compressionLevel: 9, // max compression level (0-9)
+            quality: 90, // quanlity (0-100)
+            effort: 10, // compression effort (1-10)
+          })
+          .toBuffer()
 
-      ctx.body = {
-        success: true,
-        message: 'File uploaded successfully',
-        data: { url: fileUrl },
+        await fs.promises.writeFile(filePath, compressedBuffer)
+
+        const fileUrl = `/static/image/${fileName}`
+        const originalSize = file.buffer.length
+        const compressedSize = compressedBuffer.length
+        const compressionRatio = ((1 - compressedSize / originalSize) * 100).toFixed(2)
+
+        ctx.body = {
+          success: true,
+          message: 'File uploaded and compressed successfully',
+          data: {
+            url: fileUrl,
+            originalSize,
+            compressedSize,
+            compressionRatio: `${compressionRatio}%`,
+          },
+        }
+      } catch (error) {
+        ctx.status = 500
+        ctx.body = {
+          success: false,
+          message: 'Failed to process image',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
       }
     })
+  })
+
+  router.delete('/images', async (ctx: Router.RouterContext) => {
+    try {
+      const files = await fs.promises.readdir(IMAGE_DIRECTORY)
+      const unlinkPromises = files.map((file) =>
+        fs.promises.unlink(path.join(IMAGE_DIRECTORY, file)),
+      )
+      await Promise.all(unlinkPromises)
+      ctx.body = {
+        success: true,
+        message: 'All images removed successfully',
+      }
+    } catch (error) {
+      ctx.status = 500
+      ctx.body = {
+        success: false,
+        message: 'Failed to remove images',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
   })
 
   app.use(bodyParser())

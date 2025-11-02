@@ -37,7 +37,7 @@ export const screenshotElement = async (element: HTMLElement): Promise<string> =
     })
 
     const mime = 'image/png'
-    const quality = 0.92
+    const quality = 1
 
     const blob = (await new Promise((resolve) => {
       if (canvas.toBlob) {
@@ -69,7 +69,7 @@ export const uploadImage = async (imageBlob: Blob): Promise<string> => {
     const formData = new FormData()
     formData.append('file', imageBlob, 'screenshot.png')
 
-    const response = await fetch('/chore-fire/upload-image', {
+    const response = await fetch('/chore-fire/image', {
       method: 'POST',
       body: formData,
     })
