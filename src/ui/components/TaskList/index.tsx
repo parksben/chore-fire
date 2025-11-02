@@ -16,7 +16,8 @@ import { type FC, useCallback, useEffect, useRef, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
 import Movable, { MovableApi } from '../Movable'
 import TaskItem from './TaskItem'
-import { getElementSelector } from './utils'
+import { useLocalState } from './hooks'
+import { getElementSelector, getSourcCodeLocation } from './utils'
 
 interface TaskListProps {
   data: Task[]
@@ -27,7 +28,7 @@ interface TaskListProps {
 const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const [isSelecting, setIsSelecting] = useState(false)
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null)
-  const [isCollapsed, setIsCollapsed] = useState(true)
+  const [isCollapsed, setIsCollapsed] = useLocalState('chore-fire-ui-collapse', false)
   const [isScrolledToTop, setIsScrolledToTop] = useState(true)
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false)
   const [editingTasks, setEditingTasks] = useState<Set<string>>(new Set())
@@ -169,7 +170,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
         element_tag: element.tagName.toLowerCase(),
         element_html: element.outerHTML,
         element_screenshot: '', // screenshot will be taken when saving the prompt first time
-        source_location: window.location.href,
+        source_code_location: getSourcCodeLocation(element),
         user_prompt: '',
         status: TaskStatus.TODO,
       }
@@ -194,7 +195,8 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
     setIsSelecting(true)
     document.body.classList.add('cf-selecting-mode')
     setIsCollapsed(false)
-  }, [])
+    setShowClearConfirm(false)
+  }, [setIsCollapsed])
 
   // cancel selecting
   const cancelSelecting = useCallback(() => {

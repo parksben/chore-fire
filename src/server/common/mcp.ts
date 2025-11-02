@@ -1,10 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import type { Task, TaskStore } from './store'
-import { TaskActionType, TaskStatus } from './store'
+import { TaskActionType, type TaskStatus } from './store'
 import { imageUrlToBase64 } from './utils'
-import { nanoid } from 'nanoid'
 
 export interface McpServerParams {
   store: TaskStore

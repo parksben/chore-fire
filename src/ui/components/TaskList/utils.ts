@@ -5,14 +5,14 @@ export { getElementSelector }
 
 let highlightTimeout: NodeJS.Timeout | null = null
 
-export const highlightElement = (selector: string) => {
+export function highlightElement(selector: string) {
   if (highlightTimeout) {
     clearTimeout(highlightTimeout)
     highlightTimeout = null
   }
 
   try {
-    const element = document.querySelector(selector) as HTMLElement
+    const element = document.querySelector(selector) as Element
 
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -29,7 +29,7 @@ export const highlightElement = (selector: string) => {
   }
 }
 
-export const screenshotElement = async (element: HTMLElement): Promise<string> => {
+export async function screenshotElement(element: Element): Promise<string> {
   try {
     const canvas = await snapdom.toCanvas(element, {
       quality: 1,
@@ -64,7 +64,7 @@ export const screenshotElement = async (element: HTMLElement): Promise<string> =
   }
 }
 
-export const uploadImage = async (imageBlob: Blob): Promise<string> => {
+export async function uploadImage(imageBlob: Blob): Promise<string> {
   try {
     const formData = new FormData()
     formData.append('file', imageBlob, 'screenshot.png')
@@ -83,4 +83,33 @@ export const uploadImage = async (imageBlob: Blob): Promise<string> => {
   } catch {
     return ''
   }
+}
+
+export function getSourcCodeLocation(element: Element): string {
+  // NOTE: the attribute `data-insp-path` set by third-part plugin [code-inspector](https://github.com/zh-lx/code-inspector)
+  // user can install it in their app to get more accurate source code location
+  const locInfo = element.getAttribute('data-insp-path')
+  if (locInfo) return locInfo
+
+  const entris = Object.entries(element)
+
+  // for React nodes
+  for (const [key, value] of entris) {
+    if (key.startsWith('__reactFiber$') && value?._debugSource) {
+      const { fileName, lineNumber, columnNumber } = value._debugSource
+      return `${fileName}:${lineNumber}:${columnNumber}`
+    }
+  }
+
+  return ''
+}
+
+export function openInEditor(location: string) {
+  return fetch('/chore-fire/open-in-editor', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ location }),
+  }).then((res) => res.json())
 }

@@ -61,6 +61,97 @@ const App: FC = () => {
           </div>
         </section>
 
+        {/* How It Works Section */}
+        <section className="how-it-works-section">
+          <h2 className="section-title">🎯 工作原理</h2>
+          <div className="workflow-container">
+            <div className="workflow-step">
+              <div className="step-number">01</div>
+              <div className="step-content">
+                <div className="step-icon">🖱️</div>
+                <h3>选择元素</h3>
+                <p>在网页中直接点击或悬停需要修改的元素，系统会自动识别并高亮显示</p>
+              </div>
+            </div>
+            <div className="workflow-arrow">→</div>
+            <div className="workflow-step">
+              <div className="step-number">02</div>
+              <div className="step-content">
+                <div className="step-icon">✍️</div>
+                <h3>添加注释</h3>
+                <p>描述你想要做的修改，可以是样式调整、内容更改或功能优化</p>
+              </div>
+            </div>
+            <div className="workflow-arrow">→</div>
+            <div className="workflow-step">
+              <div className="step-number">03</div>
+              <div className="step-content">
+                <div className="step-icon">🚀</div>
+                <h3>一键提交</h3>
+                <p>点击提交按钮，任务将自动发送给编码助手进行处理</p>
+              </div>
+            </div>
+            <div className="workflow-arrow">→</div>
+            <div className="workflow-step">
+              <div className="step-number">04</div>
+              <div className="step-content">
+                <div className="step-icon">✨</div>
+                <h3>自动完成</h3>
+                <p>编码助手智能分析并执行修改，实时查看进度和结果</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Use Cases Section */}
+        <section className="use-cases-section">
+          <h2 className="section-title">💼 应用场景</h2>
+          <div className="use-cases-grid">
+            <div className="use-case-card">
+              <div className="use-case-image">
+                <div className="image-placeholder">🎨</div>
+              </div>
+              <div className="use-case-content">
+                <h3>UI/UX 设计调整</h3>
+                <p>快速标注界面元素的样式修改需求，包括颜色、布局、动画效果等，让设计迭代更高效</p>
+                <ul>
+                  <li>调整组件样式和布局</li>
+                  <li>优化响应式设计</li>
+                  <li>添加动画和交互效果</li>
+                </ul>
+              </div>
+            </div>
+            <div className="use-case-card">
+              <div className="use-case-image">
+                <div className="image-placeholder">🔧</div>
+              </div>
+              <div className="use-case-content">
+                <h3>功能需求开发</h3>
+                <p>直接在页面上标注新功能需求，AI 助手理解上下文后自动生成代码实现</p>
+                <ul>
+                  <li>添加新的交互功能</li>
+                  <li>集成第三方服务</li>
+                  <li>实现数据处理逻辑</li>
+                </ul>
+              </div>
+            </div>
+            <div className="use-case-card">
+              <div className="use-case-image">
+                <div className="image-placeholder">🐛</div>
+              </div>
+              <div className="use-case-content">
+                <h3>Bug 修复与优化</h3>
+                <p>发现问题立即标注，描述异常行为，让 AI 助手快速定位并修复 Bug</p>
+                <ul>
+                  <li>修复界面显示问题</li>
+                  <li>优化性能瓶颈</li>
+                  <li>改进用户体验</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Stats Section */}
         <section className="stats-section">
           <h2 className="section-title">📈 统计信息</h2>

@@ -3,6 +3,7 @@ import {
   ArrowDownToLine,
   ArrowUp,
   ArrowUpToLine,
+  CodeXml,
   Copy,
   Loader2,
   LocateFixed,
@@ -11,7 +12,7 @@ import {
 } from 'lucide-react'
 import { type FC, useCallback, useEffect, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
-import { highlightElement, screenshotElement } from './utils'
+import { highlightElement, openInEditor, screenshotElement } from './utils'
 
 interface TaskItemProps {
   task: Task
@@ -48,6 +49,7 @@ const TaskItem: FC<TaskItemProps> = ({
   const [isEditing, setIsEditing] = useState(!task.user_prompt)
   const [promptInput, setPromptInput] = useState(task.user_prompt)
   const [isSaving, setIsSaving] = useState(false)
+  const [isOpeningInEditor, setIsOpeningInEditor] = useState(false)
 
   // notify parent when editing state changes
   useEffect(() => {
@@ -228,6 +230,31 @@ const TaskItem: FC<TaskItemProps> = ({
             >
               <LocateFixed size="1.15em" />
             </button>
+            {task.source_code_location && (
+              <button
+                type="button"
+                className="cf-view-code-button"
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  setIsOpeningInEditor(true)
+                  try {
+                    await openInEditor(task.source_code_location)
+                  } finally {
+                    setTimeout(() => {
+                      setIsOpeningInEditor(false)
+                    }, 500)
+                  }
+                }}
+                title="View Code"
+                disabled={isOpeningInEditor}
+              >
+                {isOpeningInEditor ? (
+                  <Loader2 size="1.15em" className="cf-spinner" />
+                ) : (
+                  <CodeXml size="1.15em" />
+                )}
+              </button>
+            )}
             {!isEditing && (
               <>
                 <button

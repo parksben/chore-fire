@@ -3,22 +3,12 @@ import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { HTTP_SERVER_PORT } from './cjs/server/runtime.json'
-import { getDevServerProxyConfig } from './src/plugin/vite'
-import { rewriteHtml } from './src/plugin/common/rewriteHtml'
+import ChoreFireVitePlugin from './src/plugin/vite'
 
 export default defineConfig({
   plugins: [
     react(),
-    {
-      name: 'rewrite-html',
-      apply: 'serve',
-      transformIndexHtml: {
-        order: 'pre',
-        handler(html: string) {
-          return rewriteHtml(html, true)
-        },
-      },
-    },
+    ChoreFireVitePlugin({ httpPort: HTTP_SERVER_PORT }),
     {
       name: 'copy-umd-files',
       writeBundle() {
@@ -73,6 +63,5 @@ export default defineConfig({
       key: readFileSync(resolve(__dirname, 'localhost-key.pem')),
       cert: readFileSync(resolve(__dirname, 'localhost-cert.pem')),
     },
-    proxy: getDevServerProxyConfig(HTTP_SERVER_PORT)
   },
 })

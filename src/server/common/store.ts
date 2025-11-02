@@ -25,7 +25,7 @@ export interface Task {
   element_tag: string
   element_html: string
   element_screenshot: string
-  source_location: string
+  source_code_location: string
   user_prompt: string
   status: TaskStatus
 }

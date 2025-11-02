@@ -1,6 +1,6 @@
 import type { ClientRequest, IncomingMessage } from 'node:http'
 import type { Compiler, Module } from 'webpack'
-import { rewriteHtml } from './common/rewriteHtml'
+import { injectSdkIntoHtml } from './common/injectSdkIntoHtml'
 
 type WebpackModule = Module & {
   resource?: string
@@ -41,7 +41,7 @@ export default class ChoreFireWebpackPlugin {
                 if (originalSource) {
                   const sourceString =
                     typeof originalSource === 'string' ? originalSource : originalSource.toString()
-                  const transformed = rewriteHtml(sourceString)
+                  const transformed = injectSdkIntoHtml(sourceString)
                   if (transformed && webpackModule._source) {
                     webpackModule._source._value = transformed
                   }

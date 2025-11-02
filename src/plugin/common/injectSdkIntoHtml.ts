@@ -2,7 +2,7 @@ const RUNTIME_INFO_URL = '/chore-fire/const.js'
 const FE_SDK_URL = '/chore-fire/static/ui.umd.js'
 const FE_SDK_CSS_URL = '/chore-fire/static/ui.css'
 
-export function rewriteHtml(html: string, forUIDevelopment = false): string {
+export function injectSdkIntoHtml(html: string, forUIDevelopment = false): string {
   const constScript = html.includes(RUNTIME_INFO_URL)
     ? ''
     : `<script src="${RUNTIME_INFO_URL}"></script>`

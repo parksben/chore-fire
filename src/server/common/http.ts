@@ -9,6 +9,7 @@ import Router from 'koa-router'
 import staticDir from 'koa-static'
 import { nanoid } from 'nanoid'
 import sharp from 'sharp'
+import launchEditor from './launchEditor'
 import { type EventPayload, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
 
 export interface HttpServerParams {
@@ -45,7 +46,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
         element_tag: data.element_tag || '',
         element_html: data.element_html || '',
         element_screenshot: data.element_screenshot || '',
-        source_location: data.source_location || '',
+        source_code_location: data.source_code_location || '',
         user_prompt: data.user_prompt as string,
         status: data.status || TaskStatus.TODO,
       }
@@ -91,7 +92,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
       element_tag: taskData.element_tag || '',
       element_html: taskData.element_html || '',
       element_screenshot: taskData.element_screenshot || '',
-      source_location: taskData.source_location || '',
+      source_code_location: taskData.source_code_location || '',
       user_prompt: taskData.user_prompt,
       status: taskData.status || TaskStatus.TODO,
     }
@@ -146,7 +147,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
       element_tag: updateData?.element_tag,
       element_html: updateData?.element_html,
       element_screenshot: updateData?.element_screenshot,
-      source_location: updateData?.source_location,
+      source_code_location: updateData?.source_code_location,
       user_prompt: updateData?.user_prompt,
       status: updateData?.status,
     }
@@ -322,6 +323,45 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
       ctx.body = {
         success: false,
         message: 'Failed to remove images',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  })
+
+  router.post('/open-in-editor', async (ctx: Router.RouterContext) => {
+    const { location } = ctx.request.body as {
+      location: string
+    }
+
+    const [file, lineStr, columnStr] = location.split(':')
+    const line = parseInt(lineStr, 10) || 1
+    const column = parseInt(columnStr, 10) || 1
+
+    if (!file) {
+      ctx.status = 400
+      ctx.body = {
+        success: false,
+        message: 'Invalid source code location format',
+      }
+      return
+    }
+
+    try {
+      const editorName = await launchEditor(file, line, column)
+
+      ctx.status = 200
+      ctx.body = {
+        success: true,
+        message: 'Opened in editor successfully',
+        data: {
+          editor: editorName,
+        },
+      }
+    } catch (error) {
+      ctx.status = 500
+      ctx.body = {
+        success: false,
+        message: 'Failed to open in editor',
         error: error instanceof Error ? error.message : 'Unknown error',
       }
     }

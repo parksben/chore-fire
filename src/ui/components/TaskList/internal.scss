@@ -814,13 +814,33 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-.cf-copy-button {
+.cf-view-code-button {
   &:hover {
-    color: $color-success;
+    color: $color-primary;
   }
 
   &:active {
-    color: $color-success;
+    color: $color-primary;
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .cf-spinner {
+    animation: cf-spin 1s linear infinite;
+  }
+}
+
+.cf-copy-button {
+  &:hover {
+    color: $color-primary;
+  }
+
+  &:active {
+    color: $color-primary;
     transform: scale(0.95);
   }
 }
@@ -847,11 +867,11 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 .cf-edit-button {
   &:hover {
-    color: $color-info;
+    color: $color-primary;
   }
 
   &:active {
-    color: $color-info;
+    color: $color-primary;
     transform: scale(0.95);
   }
 }
