@@ -157,7 +157,7 @@ const TaskItem: FC<TaskItemProps> = ({
               <span className="cf-status-badge cf-status-done">DONE</span>
             )}
             {task.status === TaskStatus.CANCEL && (
-              <span className="cf-status-badge cf-status-cancel">CANCELLED</span>
+              <span className="cf-status-badge cf-status-cancel">CANCELED</span>
             )}
           </div>
         ) : (

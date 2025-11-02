@@ -12,8 +12,10 @@ export enum TaskActionType {
   UPDATE = 'update',
   DELETE = 'delete',
   STATUS = 'status',
-  WRITE = 'write',
-  CLEAR = 'clear',
+  WRITE_ALL = 'write_all',
+  CLEAR_ALL = 'clear_all',
+  START_ALL = 'start_all',
+  FINISH_ALL = 'finish_all',
 }
 
 export interface Task {
@@ -23,24 +25,19 @@ export interface Task {
   element_tag: string
   element_html: string
   element_screenshot: string
+  source_location: string
   user_prompt: string
   status: TaskStatus
 }
 
-export type EventHandler = (data: Partial<Task>) => void
+export interface EventPayload {
+  messageId: string
+  data?: any
+}
+
+export type EventHandler = (payload: EventPayload) => void
 
 export const TASK_STORE_MAX_SIZE = 200
-
-export const getTaskProperties = (data: Partial<Task>): Partial<Task> => ({
-  id: data?.id,
-  page_url: data?.page_url,
-  element_selector: data?.element_selector,
-  element_tag: data?.element_tag,
-  element_html: data?.element_html,
-  element_screenshot: data?.element_screenshot,
-  user_prompt: data?.user_prompt,
-  status: data?.status,
-})
 
 export class TaskStore {
   private queue: Task[]
@@ -51,6 +48,10 @@ export class TaskStore {
     this.queue = []
     this.map = new Map()
     this.eventMap = new Map()
+  }
+
+  get size() {
+    return this.map.size
   }
 
   add(task: Task) {
@@ -67,12 +68,12 @@ export class TaskStore {
       index: this.queue.length - 1,
     })
 
-    this.emit(TaskActionType.ADD, task)
+    this.emit(TaskActionType.ADD, { messageId: nanoid(), data: task })
   }
 
   delete(taskId: string) {
     this.map.delete(taskId)
-    this.emit(TaskActionType.DELETE, { id: taskId })
+    this.emit(TaskActionType.DELETE, { messageId: nanoid(), data: { id: taskId } })
   }
 
   get(taskId: string): Task | null {
@@ -85,7 +86,7 @@ export class TaskStore {
     if (task) {
       task.record = { ...task.record, ...rest }
       this.queue[task.index] = task.record
-      this.emit(TaskActionType.UPDATE, task.record)
+      this.emit(TaskActionType.UPDATE, { messageId: nanoid(), data: task.record })
     }
   }
 
@@ -94,7 +95,7 @@ export class TaskStore {
     if (task) {
       task.record = { ...task.record, status }
       this.queue[task.index] = task.record
-      this.emit(TaskActionType.STATUS, task.record)
+      this.emit(TaskActionType.STATUS, { messageId: nanoid(), data: task.record })
     }
   }
 
@@ -111,13 +112,13 @@ export class TaskStore {
         index,
       })
     })
-    this.emit(TaskActionType.WRITE, { id: `WRITE-STORE_${nanoid()}` })
+    this.emit(TaskActionType.WRITE_ALL, { messageId: nanoid() })
   }
 
   clear() {
     this.queue = []
     this.map.clear()
-    this.emit(TaskActionType.CLEAR, { id: `CLEAR-STORE_${nanoid()}` })
+    this.emit(TaskActionType.CLEAR_ALL, { messageId: nanoid() })
   }
 
   on(actionType: string, callback: EventHandler) {
@@ -132,10 +133,10 @@ export class TaskStore {
     this.eventMap.set(actionType, filteredListeners)
   }
 
-  emit(actionType: string, data: Partial<Task>) {
+  emit(actionType: string, payload: EventPayload) {
     const listeners = this.eventMap.get(actionType) || []
     listeners.forEach((callback) => {
-      callback(data)
+      callback(payload)
     })
   }
 }

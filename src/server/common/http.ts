@@ -8,7 +8,7 @@ import mount from 'koa-mount'
 import Router from 'koa-router'
 import staticDir from 'koa-static'
 import { nanoid } from 'nanoid'
-import { getTaskProperties, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
+import { type EventPayload, type Task, TaskActionType, TaskStatus, type TaskStore } from './store'
 
 export interface HttpServerParams {
   store: TaskStore
@@ -44,6 +44,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
         element_tag: data.element_tag || '',
         element_html: data.element_html || '',
         element_screenshot: data.element_screenshot || '',
+        source_location: data.source_location || '',
         user_prompt: data.user_prompt as string,
         status: data.status || TaskStatus.TODO,
       }
@@ -89,6 +90,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
       element_tag: taskData.element_tag || '',
       element_html: taskData.element_html || '',
       element_screenshot: taskData.element_screenshot || '',
+      source_location: taskData.source_location || '',
       user_prompt: taskData.user_prompt,
       status: taskData.status || TaskStatus.TODO,
     }
@@ -102,7 +104,7 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
     }
   })
 
-  router.get('/task/all', (ctx: Router.RouterContext) => {
+  router.get('/tasks', (ctx: Router.RouterContext) => {
     const tasks = store.list()
     ctx.body = {
       success: true,
@@ -137,7 +139,16 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
       return
     }
 
-    const validUpdateData = getTaskProperties(updateData)
+    const validUpdateData = {
+      page_url: updateData?.page_url,
+      element_selector: updateData?.element_selector,
+      element_tag: updateData?.element_tag,
+      element_html: updateData?.element_html,
+      element_screenshot: updateData?.element_screenshot,
+      source_location: updateData?.source_location,
+      user_prompt: updateData?.user_prompt,
+      status: updateData?.status,
+    }
 
     if (Object.keys(validUpdateData).length === 1 && validUpdateData.status) {
       store.status({ id: taskId, status: validUpdateData.status })
@@ -176,8 +187,8 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
 
   const messageCache: string[] = []
   const messageCacheCleanList = TASK_STORE_EVENT_TYPE.map((type) => {
-    const handler = (data: Partial<Task>) => {
-      const message = `id: ${data.id}\ndata: ${JSON.stringify({ event: type, data })}\n\n`
+    const handler = ({ messageId, data }: EventPayload) => {
+      const message = `id: ${messageId}\ndata: ${JSON.stringify({ event: type, data })}\n\n`
       messageCache.push(message)
       while (messageCache.length > 200) {
         messageCache.shift()
@@ -212,8 +223,8 @@ export function createHttpServer({ store, http_server_port: port }: HttpServerPa
     }
 
     const cleanList = TASK_STORE_EVENT_TYPE.map((type) => {
-      const handler = (data: Partial<Task>) => {
-        stream.write(`id: ${data.id}\ndata: ${JSON.stringify({ event: type, data })}\n\n`)
+      const handler = ({ messageId, data }: EventPayload) => {
+        stream.write(`id: ${messageId}\ndata: ${JSON.stringify({ event: type, data })}\n\n`)
       }
       store.on(type, handler)
       return () => {

@@ -1,5 +1,16 @@
 import clsx from 'clsx'
-import { BrushCleaning, ChevronsDown, ChevronsUp, Loader2, MousePointer2 } from 'lucide-react'
+import {
+  AlertTriangle,
+  BrushCleaning,
+  Check,
+  CheckCircle2,
+  ChevronsDown,
+  ChevronsUp,
+  Loader2,
+  MousePointer2,
+  RotateCcw,
+  X,
+} from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { type FC, useCallback, useEffect, useRef, useState } from 'react'
 import { Task, TaskStatus } from '../../../server/common/store'
@@ -20,12 +31,19 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
   const [isScrolledToTop, setIsScrolledToTop] = useState(true)
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false)
   const [editingTasks, setEditingTasks] = useState<Set<string>>(new Set())
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   const movableApi = useRef<MovableApi | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   // check if any task is editing
   const hasEditingTask = editingTasks.size > 0
+
+  // calculate completion status
+  const completedCount = data.filter(
+    (t) => t.status === TaskStatus.DONE || t.status === TaskStatus.CANCEL,
+  ).length
+  const isComplete = isRunning && data.length > 0 && completedCount === data.length
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: adjust position on collapse change
   useEffect(() => {
@@ -151,6 +169,7 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
         element_tag: element.tagName.toLowerCase(),
         element_html: element.outerHTML,
         element_screenshot: '', // screenshot will be taken when saving the prompt first time
+        source_location: window.location.href,
         user_prompt: '',
         status: TaskStatus.TODO,
       }
@@ -425,11 +444,11 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                       {isCollapsed ? <ChevronsUp size="1.4em" /> : <ChevronsDown size="1.4em" />}
                     </button>
                     {isCollapsed ? 'ChoreFire' : `${data.length} items`}
-                    {!isRunning && !isCollapsed && data.length > 0 && (
+                    {!isComplete && !isCollapsed && data.length > 0 && (
                       <button
                         type="button"
                         className="cf-clear-button"
-                        onClick={() => onChange([])}
+                        onClick={() => setShowClearConfirm(true)}
                         disabled={isSelecting}
                         title="Clean"
                       >
@@ -441,20 +460,28 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                     )}
                   </div>
                   {isRunning ? (
-                    <div className="cf-running-indicator">
-                      <Loader2 size="1em" className="cf-spinner" />
-                      <span>
-                        Running{' '}
-                        {
-                          data.filter(
-                            (t) =>
-                              t.status === TaskStatus.DONE ||
-                              t.status === TaskStatus.CANCEL ||
-                              t.status === TaskStatus.DOING,
-                          ).length
-                        }
-                        /{data.length}
-                      </span>
+                    <div
+                      className={clsx(
+                        'cf-running-indicator',
+                        isComplete && 'cf-running-indicator-complete',
+                      )}
+                    >
+                      {isComplete ? (
+                        <>
+                          <Check size="1em" />
+                          <span>Completed</span>
+                        </>
+                      ) : (
+                        <>
+                          <Loader2 size="1em" className="cf-spinner" />
+                          <span>
+                            Running{' '}
+                            {completedCount +
+                              data.filter((t) => t.status === TaskStatus.DOING).length}
+                            /{data.length}
+                          </span>
+                        </>
+                      )}
                     </div>
                   ) : !isCollapsed ? (
                     <button
@@ -496,6 +523,87 @@ const TaskList: FC<TaskListProps> = ({ data, onChange, isRunning = false }) => {
                     </div>
                   </div>
                   {!isScrolledToBottom && <div className="cf-scroll-fade-mask-bottom" />}
+
+                  {/* Clear confirmation overlay */}
+                  {showClearConfirm && (
+                    <div className="cf-complete-overlay">
+                      <div className="cf-complete-content">
+                        <div className="cf-complete-icon cf-warning-icon">
+                          <AlertTriangle size="3em" />
+                        </div>
+                        <div className="cf-complete-title">Clear All Tasks?</div>
+                        <div className="cf-complete-description">
+                          {isRunning ? (
+                            <>
+                              Remove all {data.length} {data.length === 1 ? 'task' : 'tasks'}?
+                              <br />
+                              {(() => {
+                                const runningCount = data.filter(
+                                  (t) => t.status === TaskStatus.DOING,
+                                ).length
+                                const pendingCount = data.filter(
+                                  (t) => t.status === TaskStatus.TODO,
+                                ).length
+                                return (
+                                  <span className="cf-task-status-hint">
+                                    ({runningCount} doing, {pendingCount} todo)
+                                  </span>
+                                )
+                              })()}
+                            </>
+                          ) : (
+                            <>
+                              Remove all {data.length} {data.length === 1 ? 'task' : 'tasks'}?
+                            </>
+                          )}
+                        </div>
+                        <div className="cf-confirm-actions">
+                          <button
+                            type="button"
+                            className="cf-confirm-cancel-button"
+                            onClick={() => setShowClearConfirm(false)}
+                          >
+                            <X size="1em" />
+                            <span>Cancel</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="cf-confirm-button"
+                            onClick={() => {
+                              onChange([])
+                              setShowClearConfirm(false)
+                            }}
+                          >
+                            <Check size="1em" />
+                            <span>Confirm</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete overlay */}
+                  {isComplete && (
+                    <div className="cf-complete-overlay">
+                      <div className="cf-complete-content">
+                        <div className="cf-complete-icon">
+                          <CheckCircle2 size="3em" />
+                        </div>
+                        <div className="cf-complete-title">All Tasks Completed!</div>
+                        <div className="cf-complete-description">
+                          {data.length} {data.length === 1 ? 'task' : 'tasks'} finished or canceled
+                        </div>
+                        <button
+                          type="button"
+                          className="cf-complete-confirm-button"
+                          onClick={() => onChange([])}
+                        >
+                          <RotateCcw size="1em" />
+                          <span>Start Over</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

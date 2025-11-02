@@ -36,6 +36,11 @@ export default function ChoreFireUI() {
   useEffect(() => {
     if (!isReady.current) return
 
+    // update running state
+    if (data.length === 0) {
+      setRunning(false)
+    }
+
     // save to localforage
     localforage.setItem(STORAGE_KEY, data)
 
@@ -61,6 +66,11 @@ export default function ChoreFireUI() {
         data: Partial<Task>
       }
 
+      if (action === TaskActionType.START_ALL) {
+        setRunning(true)
+        return
+      }
+
       if (action === TaskActionType.STATUS) {
         setData((prev) => {
           const nextList = prev.map((task) => {
@@ -72,16 +82,20 @@ export default function ChoreFireUI() {
           localforage.setItem(STORAGE_KEY, nextList)
           return nextList
         })
-        if (data.status !== TaskStatus.TODO) {
-          setRunning(true)
-        }
         return
       }
 
-      if (action === TaskActionType.CLEAR) {
-        setData([])
-        localforage.removeItem(STORAGE_KEY)
-        setRunning(false)
+      if (action === TaskActionType.FINISH_ALL) {
+        setData((prev) => {
+          const nextList = prev.map((task) => {
+            if (task.status === TaskStatus.DOING || task.status === TaskStatus.TODO) {
+              return { ...task, status: TaskStatus.DONE }
+            }
+            return task
+          })
+          localforage.setItem(STORAGE_KEY, nextList)
+          return nextList
+        })
         return
       }
     }
