@@ -81,6 +81,45 @@ function exists(cmd: string) {
   }
 }
 
+function isProcessRunning(processName: string): boolean {
+  try {
+    if (isWin) {
+      // Windows: use tasklist command
+      const result = execFileSync('tasklist', [], {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+      })
+      return result.toLowerCase().includes(processName.toLowerCase())
+    }
+    // macOS/Linux: use ps command
+    const result = execFileSync('ps', ['aux'], {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+    })
+    return result.toLowerCase().includes(processName.toLowerCase())
+  } catch {
+    return false
+  }
+}
+
+function getRunningEditor(defs = editorDefs) {
+  for (const ed of defs) {
+    // check if the editor process is running
+    const processName = ed.name.replace(/\s+/g, '').toLowerCase()
+    if (isProcessRunning(processName) || isProcessRunning(ed.key)) {
+      // check if the editor command is available
+      if (exists(ed.cmd)) return ed
+      for (const p of ed.fallback) {
+        if (existsSync(p)) {
+          ed.cmd = p
+          return ed
+        }
+      }
+    }
+  }
+  return null
+}
+
 function findFirstAvailable(defs = editorDefs) {
   for (const ed of defs) {
     if (exists(ed.cmd)) return ed
@@ -96,7 +135,15 @@ function findFirstAvailable(defs = editorDefs) {
 
 export default function launchEditor(file: string, line = 1, column = 1, editorKey?: string) {
   const subset = editorKey ? editorDefs.filter((e) => e.key === editorKey) : editorDefs
-  const ed = findFirstAvailable(subset)
+
+  // use the running editor first
+  let ed = getRunningEditor(subset)
+
+  // if running editor not found, find the first available one
+  if (!ed) {
+    ed = findFirstAvailable(subset)
+  }
+
   if (!ed) throw new Error('Cannot find a code editor installed on the system.')
   const args = ed.args(file, line, column).map((a) => String(a))
   spawn(ed.cmd, args, { stdio: 'inherit' })
