@@ -6,7 +6,7 @@ Vibe Coding 时代的 Web 前端开发神器。使开发者可以直接在网页
 
 ## 效果演示（视频）
 
-![demo.mp4](https://github.com/user-attachments/assets/5f212d05-c176-4626-84b7-0c28a5855df3)
+https://github.com/user-attachments/assets/5f212d05-c176-4626-84b7-0c28a5855df3
 
 ## 功能特性
 
