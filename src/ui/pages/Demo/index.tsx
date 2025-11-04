@@ -399,6 +399,46 @@ const Demo: FC = () => {
           <div className="future-quote">
             <p>"The destiny of humanity is not on Earth, but among the stars."</p>
             <p className="quote-author">— In Honor of All Space Explorers</p>
+            
+            <div className="additional-quotes">
+              <div className="quote-item">
+                <p>"We choose to go to the Moon and do the other things, not because they are easy, but because they are hard."</p>
+                <p className="quote-author">— John F. Kennedy, 1962</p>
+              </div>
+              
+              <div className="quote-item">
+                <p>"The Earth is the cradle of humanity, but mankind cannot stay in the cradle forever."</p>
+                <p className="quote-author">— Konstantin Tsiolkovsky</p>
+              </div>
+              
+              <div className="quote-item">
+                <p>"Exploration is in our nature. We began as wanderers, and we are wanderers still."</p>
+                <p className="quote-author">— Carl Sagan</p>
+              </div>
+            </div>
+
+            <div className="mission-statement">
+              <h3>Our Mission</h3>
+              <p>Through the power of artificial intelligence and human ingenuity, we are pioneering new frontiers in space exploration. Our commitment is to expand humanity's presence beyond Earth, ensuring a sustainable and thriving future among the stars.</p>
+              <div className="mission-values">
+                <div className="value-item">
+                  <span className="value-icon">🌍</span>
+                  <span>Sustainability</span>
+                </div>
+                <div className="value-item">
+                  <span className="value-icon">🤝</span>
+                  <span>Collaboration</span>
+                </div>
+                <div className="value-item">
+                  <span className="value-icon">🚀</span>
+                  <span>Innovation</span>
+                </div>
+                <div className="value-item">
+                  <span className="value-icon">🌟</span>
+                  <span>Inspiration</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

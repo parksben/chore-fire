@@ -4,9 +4,9 @@
 
 Vibe Coding 时代的 Web 前端开发神器。使开发者可以直接在网页上标注要修改的内容和功能，并将这些琐碎的的任务（**Chore**）批量交给本地编码助手（如 [GitHub Copilot](https://github.com/features/copilot)）执行（**Fire**）。
 
-## 使用效果（视频演示）
+## 效果演示（视频）
 
-[TODO: 这是一个视频]
+<video src="./demo.mp4" controls width="1080"></video>
 
 ## 功能特性
 
