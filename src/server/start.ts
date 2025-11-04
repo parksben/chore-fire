@@ -58,5 +58,7 @@ const runtimeConfig: RuntimeConfig = {
 
 const fileContent = JSON.stringify(runtimeConfig, null, 2)
 const runtimeInfoPath = path.join(__dirname, 'runtime.json')
-
 fs.writeFileSync(runtimeInfoPath, fileContent, 'utf-8')
+
+const esmRuntimeInfoPath = path.join(__dirname, '../../esm/server/runtime.json')
+fs.writeFileSync(esmRuntimeInfoPath, fileContent, 'utf-8')
